@@ -1,7 +1,5 @@
 package com.canliture.soot.ass1;
 
-import java.util.Objects;
-
 /**
  * Created by liture on 2021/9/19 1:19 下午
  *
@@ -17,12 +15,14 @@ public class CPValue {
      */
     private int val;
 
-    private CPValue() {
-        throw new UnsupportedOperationException();
-    }
+    private CPValue() { }
 
     private CPValue(int val) {
         this.val = val;
+    }
+
+    public int val() {
+        return val;
     }
 
     public static CPValue getNAC() {
@@ -45,20 +45,34 @@ public class CPValue {
      * @return meet后的结果
      */
     public static CPValue meetValue(CPValue value1, CPValue value2) {
-        // todo
-        return UNDEF;
+        if (value1 == getUndef()) {
+            return value2;
+        }
+
+        if (value2 == getUndef()) {
+            return value1;
+        }
+
+        if (value1 == getNAC() || value2 == getNAC()) {
+            return getNAC();
+        }
+
+        // 两个具体的值meet
+        if (value1.val() == value2.val()) {
+            return makeConstant(value1.val());
+        }
+
+        return getNAC();
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        CPValue cpValue = (CPValue) o;
-        return val == cpValue.val;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(val);
+    public String toString() {
+        if (this == NAC) {
+            return "NAC";
+        }
+        if (this == UNDEF) {
+            return "UNDEF";
+        }
+        return String.valueOf(val);
     }
 }

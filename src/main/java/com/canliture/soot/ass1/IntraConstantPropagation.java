@@ -1,6 +1,9 @@
 package com.canliture.soot.ass1;
 
+import soot.Local;
 import soot.Unit;
+import soot.Value;
+import soot.jimple.AssignStmt;
 import soot.toolkits.graph.DirectedGraph;
 import soot.toolkits.scalar.ForwardFlowAnalysis;
 
@@ -36,21 +39,40 @@ public class IntraConstantPropagation extends ForwardFlowAnalysis<Unit, FlowMap>
      */
     @Override
     protected void flowThrough(FlowMap in, Unit d, FlowMap out) {
+        copy(in, out);
+        if (d instanceof AssignStmt) {
+            AssignStmt ass = (AssignStmt) d;
+            Value lVal = ass.getLeftOp();
+            if (lVal instanceof Local) {
+                Local definedLocal = (Local) lVal;
 
+                // 计算右侧的格值
+                Value rightVal = ass.getRightOp();
+                CPValue rightCPValue = in.computeValue(rightVal);
+
+                out.put(definedLocal, rightCPValue);
+            }
+        }
     }
 
     @Override
     protected FlowMap newInitialFlow() {
-        return null;
+        return new FlowMap();
     }
 
     @Override
     protected void merge(FlowMap in1, FlowMap in2, FlowMap out) {
-
+        FlowMap meet = FlowMap.meet(in1, in2);
+        copy(meet, out);
     }
 
     @Override
     protected void copy(FlowMap source, FlowMap dest) {
+        dest.copyFrom(source);
+    }
 
+    @Override
+    public void doAnalysis() {
+        super.doAnalysis();
     }
 }

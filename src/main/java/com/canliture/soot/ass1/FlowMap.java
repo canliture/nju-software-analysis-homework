@@ -2,9 +2,10 @@ package com.canliture.soot.ass1;
 
 import soot.Local;
 import soot.Value;
+import soot.jimple.*;
 
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,8 +30,7 @@ public class FlowMap {
      * @return 如果存在关联的值, 返回该值；否则返回 {@link CPValue#getUndef()}
      */
     public CPValue get(Local local) {
-        // todo
-        return null;
+        return delegateMap.computeIfAbsent(local, l -> CPValue.getUndef());
     }
 
     /**
@@ -40,27 +40,14 @@ public class FlowMap {
      * @return 旧的值
      */
     public CPValue put(Local local, CPValue value) {
-        // todo
-        return null;
-    }
-
-    /**
-     * 更新局部变量的格值
-     * @param local
-     * @param value
-     * @return
-     */
-    public boolean update(Local local, CPValue value) {
-        // todo
-        return false;
+        return delegateMap.put(local, value);
     }
 
     /**
      * @return map中所有局部变量
      */
     public Set<Local> keySet() {
-        // todo
-        return Collections.emptySet();
+        return delegateMap.keySet();
     }
 
     /**
@@ -69,7 +56,8 @@ public class FlowMap {
      * @return 拷贝操作改变当前map的内容，则返回true
      */
     public boolean copyFrom(FlowMap flowMap) {
-        return false;
+        delegateMap.putAll(flowMap.delegateMap);
+        return flowMap.delegateMap.equals(delegateMap);
     }
 
     /**
@@ -78,8 +66,51 @@ public class FlowMap {
      * @return 计算得到的格值
      */
     public CPValue computeValue(Value sootValue) {
-        // todo
-        return CPValue.getUndef();
+        if (sootValue instanceof Local) {
+            return get((Local) sootValue);
+        } else if (sootValue instanceof IntConstant) {
+            return CPValue.makeConstant(((IntConstant) sootValue).value);
+        } else if (sootValue instanceof BinopExpr) {
+            BinopExpr binopExpr = (BinopExpr) sootValue;
+
+            // 计算左侧格值
+            Value op1 = binopExpr.getOp1();
+            CPValue op1Val = computeValue(op1);
+
+            // 计算右侧格值
+            Value op2 = binopExpr.getOp2();
+            CPValue op2Val = computeValue(op2);
+
+            // 如果两个都未定义，那么整个计算也是未定义的
+            if (op1Val == CPValue.getUndef() && op2Val == CPValue.getUndef()) {
+                return CPValue.getUndef();
+            }
+
+            // 如果其中有一个未定义，那么整个计算就不是常数
+            if (op1Val == CPValue.getUndef() || op2Val == CPValue.getUndef()) {
+                return CPValue.getNAC();
+            }
+
+            // 其中有一个不是常数，那么整个计算就不是常数
+            if (op1Val == CPValue.getNAC() || op2Val == CPValue.getNAC()) {
+                return CPValue.getNAC();
+            }
+
+            // 两个都是常量
+            if (binopExpr instanceof AddExpr) {
+                return CPValue.makeConstant(op1Val.val() + op2Val.val());
+            } else if (binopExpr instanceof SubExpr) {
+                return CPValue.makeConstant(op1Val.val() - op2Val.val());
+            } else if (binopExpr instanceof MulExpr) {
+                return CPValue.makeConstant(op1Val.val() * op2Val.val());
+            } else if (binopExpr instanceof DivExpr) {
+                return CPValue.makeConstant(op1Val.val() / op2Val.val());
+            }
+        }
+
+        // 只考虑 Local / IntConstant / BinopExpr
+        // 对于其它指令(比如函数调用等)，保守得 NAC
+        return CPValue.getNAC();
     }
 
     // - - - - - - - - - static methods
@@ -92,7 +123,24 @@ public class FlowMap {
      * @return meet的结果Map
      */
     public static FlowMap meet(FlowMap map1, FlowMap map2) {
-        // todo
-        return new FlowMap();
+        FlowMap resultMap = new FlowMap();
+
+        Set<Local> localSet = new HashSet<>();
+        localSet.addAll(map1.keySet());
+        localSet.addAll(map2.keySet());
+
+        for (Local local : localSet) {
+            CPValue v1 = map1.get(local);
+            CPValue v2 = map2.get(local);
+            CPValue meetVal = CPValue.meetValue(v1, v2);
+            resultMap.put(local, meetVal);
+        }
+
+        return resultMap;
+    }
+
+    @Override
+    public String toString() {
+        return delegateMap.toString();
     }
 }
