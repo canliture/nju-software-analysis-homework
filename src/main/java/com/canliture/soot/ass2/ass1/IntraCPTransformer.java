@@ -18,11 +18,5 @@ public class IntraCPTransformer extends BodyTransformer {
         UnitGraph unitGraph = new BriefUnitGraph(b);
         IntraConstantPropagation propagation = new IntraConstantPropagation(unitGraph);
         propagation.doAnalysis();
-        System.out.println(String.format("=========== Method %s ============\n", b.getMethod().getName()));
-        for (Unit unit : b.getUnits()) {
-            System.out.println(String.format("Before %s: %s", unit, propagation.getFlowBefore(unit)));
-            System.out.println(String.format("After %s: %s", unit, propagation.getFlowAfter(unit)));
-            System.out.println("==================================================================\n");
-        }
     }
 }

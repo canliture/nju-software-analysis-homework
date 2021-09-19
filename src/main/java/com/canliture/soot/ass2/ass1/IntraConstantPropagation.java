@@ -14,11 +14,12 @@ import soot.toolkits.scalar.ForwardFlowAnalysis;
  * - 只考虑局部变量
  * - int类型的线性常量传播
  * - 考虑算数运算 +,-,*,/
+ * - 考虑比较运算 ==, !=, >=, >, <=, <
  *
  * 只需要关注等式的右侧是
  * - Constant; 如: x = 1
  * - Variable; 如: x = y
- * - BinaryExpression; 如 x = a + b; x = 1 - c; x = 2 * 3
+ * - BinaryExpression; 如 x = a + b; x = 1 - c; x = 2 * 3; (另外还有比较运算)
  */
 public class IntraConstantPropagation extends ForwardFlowAnalysis<Unit, FlowMap> {
 
