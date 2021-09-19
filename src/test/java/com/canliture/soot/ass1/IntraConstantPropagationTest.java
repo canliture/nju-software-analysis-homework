@@ -15,19 +15,24 @@ public class IntraConstantPropagationTest {
 
     @Before
     public void initializeSoot() {
+        // 加载JDK到class path中
         Options.v().set_whole_program(true);
+        // 容错
         Options.v().set_allow_phantom_refs(true);
 
-        // 只ass代码
+        // 不分析我们的测试代码
         Options.v().set_exclude(Arrays.asList("com.canliture.*"));
         Options.v().set_no_bodies_for_excluded(true);
 
         Options.v().set_prepend_classpath(true);
         Options.v().set_process_dir(Arrays.asList("target/test-classes"));
 
+        // 保留变量原始的名字
         Options.v().setPhaseOption("jb", "use-original-names:true");
+        // 输出Jimple IR文件到sootOutput目录中，方便调试查看
         Options.v().set_output_format(Options.output_format_jimple);
 
+        // 加载所有类
         Scene.v().loadNecessaryClasses();
     }
 
@@ -48,6 +53,7 @@ public class IntraConstantPropagationTest {
 
     @After
     public void output() {
+        // 输出到 Jimple IR到sootOutput目录中
         PackManager.v().writeOutput();
     }
 }
