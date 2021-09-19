@@ -141,8 +141,7 @@ public class DeadCodeDetection {
             // 后继
             List<Unit> succs = cfg.getSuccsOf(curr);
             for (Unit succ : succs) {
-                Pair<Unit, Unit> edge = new Pair<>(curr, succ);
-                if (!unreachableUnits.contains(edge)) {
+                if (!unreachableEdgeSet.containsEdge(curr, succ)) {
                     q.add(succ);
                 }
             }
