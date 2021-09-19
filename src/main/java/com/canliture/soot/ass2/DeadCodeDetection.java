@@ -27,14 +27,22 @@ public class DeadCodeDetection {
      * @return 返回检测到的死代码
      */
     public Set<Unit> findDeadCode(Body b) {
+        // 找到Dead Assignment
+        Set<Unit> deadAssignments = findDeadAssignments(b);
+
         // 创建cfg
         UnitGraph cfg = new BriefUnitGraph(b);
 
-        // 找到不可达分支
+        // 利用常量传播找到不可达分支
         EdgeSet unreachableBranchEdge = findUnreachableBranches(b, cfg);
 
         // 找到不可达代码
-        Set<Unit> result = findUnreachableCode(cfg, unreachableBranchEdge);
+        Set<Unit> unreachableCode = findUnreachableCode(cfg, unreachableBranchEdge);
+
+        // 合并死代码到result中
+        Set<Unit> result = new HashSet<>();
+        result.addAll(deadAssignments);
+        result.addAll(unreachableCode);
 
         return result;
     }
@@ -104,10 +112,6 @@ public class DeadCodeDetection {
      * @return
      */
     private Set<Unit> findUnreachableCode(DirectedGraph<Unit> cfg, EdgeSet unreachableEdgeSet) {
-        // 执行活性分析，用于删除dead assignment；注意side-effect不能删除
-        LiveVariableAnalysis liveVariableAnalysis = new LiveVariableAnalysis(cfg);
-        liveVariableAnalysis.doAnalysis();
-
         // 最终求解的不可达代码
         Set<Unit> unreachableUnits = new HashSet<>();
 
@@ -121,24 +125,10 @@ public class DeadCodeDetection {
             if (visited.contains(curr)) {
                 continue;
             }
+            // 对当前Unit做标记，表示已经访问过
             visited.add(curr);
 
-            // 如果是赋值语句，判断是否是 dead assignment
-            if (curr instanceof AssignStmt) {
-                AssignStmt assign = (AssignStmt) curr;
-                Value v = assign.getLeftOp();
-                if (v instanceof Local) {
-                    Local local = (Local) v;
-                    FlowSet<Local> liveSet = liveVariableAnalysis.getFlowBefore(assign);
-                    // 不活跃 & 没有副作用
-                    if (!liveSet.contains(local) && !mayHaveSideEffect(assign)) {
-                        // 不可达代码
-                        unreachableUnits.add(curr);
-                    }
-                }
-            }
-
-            // 后继
+            // 将可达后继入队列
             List<Unit> succs = cfg.getSuccsOf(curr);
             for (Unit succ : succs) {
                 if (!unreachableEdgeSet.containsEdge(curr, succ)) {
@@ -155,5 +145,31 @@ public class DeadCodeDetection {
         }
 
         return unreachableUnits;
+    }
+
+    public Set<Unit> findDeadAssignments(Body body) {
+        // 执行活性分析，用于删除dead assignment；注意side-effect不能删除
+        BriefUnitGraph cfg = new BriefUnitGraph(body);
+        LiveVariableAnalysis liveVariableAnalysis = new LiveVariableAnalysis(cfg);
+        liveVariableAnalysis.doAnalysis();
+
+        Set<Unit> deadAssignments = new HashSet<>();
+        for (Unit unit : cfg) {
+            // 如果是赋值语句，判断是否是 dead assignment
+            if (unit instanceof AssignStmt) {
+                AssignStmt assign = (AssignStmt) unit;
+                Value v = assign.getLeftOp();
+                if (v instanceof Local) {
+                    Local local = (Local) v;
+                    FlowSet<Local> liveSet = liveVariableAnalysis.getFlowBefore(assign);
+                    // 不活跃 & 没有副作用
+                    if (!liveSet.contains(local) && !mayHaveSideEffect(assign)) {
+                        // 不可达代码
+                        deadAssignments.add(unit);
+                    }
+                }
+            }
+        }
+        return deadAssignments;
     }
 }
