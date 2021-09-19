@@ -1,5 +1,9 @@
 package com.canliture.soot.ass2;
 
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
 /**
  * Created by liture on 2021/9/19 9:58 下午
  *
@@ -8,14 +12,32 @@ package com.canliture.soot.ass2;
  */
 public class FlowSet<T> {
 
+    private Set<T> delegateSet;
+
+    public FlowSet() {
+        this(new HashSet<>());
+    }
+
+    public FlowSet(Set<T> delegateSet) {
+        this.delegateSet = delegateSet;
+    }
+
+    /**
+     * 是否包含元素
+     * @param t
+     * @return
+     */
+    public boolean contains(T t) {
+        return delegateSet.contains(t);
+    }
+
     /**
      * 添加T类型的数据到当前set中
      * @param t
      * @return 是否改变了当前set的内容
      */
     public boolean add(T t) {
-        // todo
-        return false;
+        return delegateSet.add(t);
     }
 
     /**
@@ -24,8 +46,7 @@ public class FlowSet<T> {
      * @return 是否remove操作改变了当前set的内容
      */
     public boolean remove(T t) {
-        // todo
-        return false;
+        return delegateSet.remove(t);
     }
 
     /**
@@ -34,8 +55,8 @@ public class FlowSet<T> {
      * @return 当前set
      */
     public FlowSet<T> union(FlowSet<T> another) {
-        // todo
-        return new FlowSet<>();
+        delegateSet.addAll(another.delegateSet);
+        return this;
     }
 
     /**
@@ -44,16 +65,23 @@ public class FlowSet<T> {
      * @return 返回当前集合
      */
     public FlowSet<T> intersect(FlowSet<T> another) {
-        // todo
-        return new FlowSet<>();
+        Iterator<T> iterator = delegateSet.iterator();
+        while (iterator.hasNext()) {
+            T t = iterator.next();
+            if (!another.delegateSet.contains(t)) {
+                iterator.remove();
+            }
+        }
+        return this;
     }
 
     /**
-     * @return 返回当前集合集合的一个新创建的拷贝
+     * @return 返回当前集合的一个新创建的拷贝
      */
     public FlowSet<T> duplicate() {
-        // todo
-        return new FlowSet<>();
+        FlowSet<T> result = new FlowSet<>();
+        result.delegateSet.addAll(delegateSet);
+        return result;
     }
 
     /**
@@ -62,6 +90,8 @@ public class FlowSet<T> {
      * @return 返回当前集合
      */
     public FlowSet<T> setTo(FlowSet<T> another) {
-        return new FlowSet<>();
+        delegateSet.clear();
+        delegateSet.addAll(another.delegateSet);
+        return this;
     }
 }
