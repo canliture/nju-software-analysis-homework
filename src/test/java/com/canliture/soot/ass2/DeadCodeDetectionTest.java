@@ -1,19 +1,19 @@
-package com.canliture.soot.ass1;
+package com.canliture.soot.ass2;
 
 import com.canliture.soot.BaseTest;
-import soot.*;
+import soot.Transformer;
 
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * Created by liture on 2021/9/19 4:29 下午
+ * Created by liture on 2021/9/20 2:06 上午
  */
-public class IntraConstantPropagationTest extends BaseTest {
+public class DeadCodeDetectionTest extends BaseTest {
 
     @Override
     public List<String> getProcessDirs() {
-        return Arrays.asList("target/test-classes/ass1");
+        return Arrays.asList("target/test-classes/ass2");
     }
 
     @Override
@@ -23,11 +23,11 @@ public class IntraConstantPropagationTest extends BaseTest {
 
     @Override
     public String getPhaseNameOfTransformer() {
-        return "jtp.intra_cp";
+        return "jtp.dead_code_detect";
     }
 
     @Override
     public Transformer getTransformer() {
-        return new IntraCPTransformer();
+        return new DeadCodeTransformer();
     }
 }
