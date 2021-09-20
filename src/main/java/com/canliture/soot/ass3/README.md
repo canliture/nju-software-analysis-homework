@@ -1,5 +1,5 @@
 对应的作业要求文档在 `docs/ass3-ClassHierarchyAnalysis.pdf`
-看完前6节课的作业(Lecture 7)
+看完前7节课的作业(Lecture 7)
 
 ### Class Hierarchy Analysis
 
