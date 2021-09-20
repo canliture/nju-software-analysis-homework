@@ -7,8 +7,12 @@
 
 ### 代码
 - com.canliture.soot.ass1
-  - 包下代码为第一次作业的代码实现
+  - 第一次作业的代码实现
   - 常量传播
 - com.canliture.soot.ass2
+  - 第二次作业的代码实现
+  - 常量传播 + 活性检测 应用于死代码消除
 - com.canliture.soot.ass3
+  - 第三次作业的代码实现
+  - CHA用于构造调用图
 - com.canliture.soot.ass4
