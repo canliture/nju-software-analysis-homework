@@ -3,12 +3,8 @@ package com.canliture.soot.ass2;
 import com.canliture.soot.ass2.ass1.CPValue;
 import com.canliture.soot.ass2.ass1.FlowMap;
 import com.canliture.soot.ass2.ass1.IntraConstantPropagation;
-import soot.Body;
-import soot.Local;
-import soot.Unit;
-import soot.Value;
-import soot.jimple.AssignStmt;
-import soot.jimple.IfStmt;
+import soot.*;
+import soot.jimple.*;
 import soot.toolkits.graph.BriefUnitGraph;
 import soot.toolkits.graph.DirectedGraph;
 import soot.toolkits.graph.UnitGraph;
@@ -26,22 +22,52 @@ public class DeadCodeDetection {
      * @return 返回检测到的死代码
      */
     public Set<Unit> findDeadCode(Body b) {
-        // 找到Dead Assignment
-        Set<Unit> deadAssignments = findDeadAssignments(b);
 
-        // 创建cfg
-        UnitGraph cfg = new BriefUnitGraph(b);
+        // 目前在原body的拷贝上进行操作
+        b = (Body) b.clone();
 
-        // 利用常量传播找到不可达分支
-        EdgeSet unreachableBranchEdge = findUnreachableBranches(b, cfg);
-
-        // 找到不可达代码
-        Set<Unit> unreachableCode = findUnreachableCode(cfg, unreachableBranchEdge);
-
-        // 合并死代码到result中
         Set<Unit> result = new HashSet<>();
-        result.addAll(deadAssignments);
-        result.addAll(unreachableCode);
+        int prevSize = -1;
+        while (prevSize != result.size()) {
+            prevSize = result.size();
+
+            // 找到Dead Assignment
+            Set<Unit> deadAssignments = findDeadAssignments(b);
+
+            // 创建cfg
+            UnitGraph cfg = new BriefUnitGraph(b);
+
+            // 利用常量传播找到不可达分支
+            EdgeSet unreachableBranchEdge = findUnreachableBranches(b, cfg);
+
+            // 找到不可达代码
+            Set<Unit> unreachableCode = findUnreachableCode(cfg, unreachableBranchEdge);
+
+            // 添加到不可达代码集合中
+            result.addAll(deadAssignments);
+            result.addAll(unreachableCode);
+            result.removeIf(unit -> (unit instanceof IdentityUnit)
+                                 || (unit instanceof ReturnStmt)
+                                 || (unit instanceof RetStmt)
+                                 || (unit instanceof ReturnVoidStmt));
+
+            // 删除dead code或者不可达代码
+            System.out.println(String.format("- - - - - Dead Code Of Method %s - - - - -", b.getMethod().getName()));
+            b.getUnits().removeIf(unit -> {
+                boolean ret = result.contains(unit);
+                if (ret) {
+                    System.out.println(unit);
+                }
+                return ret;
+            });
+            System.out.println(String.format("- - - - - End of Dead Code Of Method %s - - - - -\n\n", b.getMethod().getName()));
+        }
+
+        System.out.println(String.format("- - - - - After Optimization of Method %s - - - - -", b.getMethod().getName()));
+        Body body = (Body) b.clone();
+        body.getUnits().removeIf(result::contains);
+        System.out.println(body);
+        System.out.println(String.format("- - - - - Enf of After Optimization Of Method %s - - - - -", b.getMethod().getName()));
 
         return result;
     }

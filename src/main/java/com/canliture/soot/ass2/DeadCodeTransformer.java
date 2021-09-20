@@ -16,8 +16,10 @@ public class DeadCodeTransformer extends BodyTransformer {
     protected void internalTransform(Body b, String phaseName, Map<String, String> options) {
         DeadCodeDetection deadCodeDetection = new DeadCodeDetection();
         Set<Unit> deadCodes = deadCodeDetection.findDeadCode(b);
-        System.out.println(String.format("- - - - - Dead Code Of Method %s - - - - -", b.getMethod().getName()));
+
+        System.out.println(String.format("- - - - - Full Dead Code Of Method %s - - - - -", b.getMethod().getName()));
         deadCodes.forEach(System.out::println);
-        System.out.println(String.format("- - - - - End of Dead Code Of Method %s - - - - -\n\n", b.getMethod().getName()));
+        System.out.println(String.format("- - - - - End of Full Dead Code Of Method %s - - - - -\n\n", b.getMethod().getName()));
+
     }
 }
