@@ -2,6 +2,7 @@ package com.canliture.soot.ass3;
 
 import soot.SootMethod;
 import soot.Unit;
+import soot.tagkit.LineNumberTag;
 
 import java.util.Objects;
 
@@ -45,5 +46,14 @@ public class CallEdge {
     @Override
     public int hashCode() {
         return Objects.hash(callSite, callee);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder buff = new StringBuilder();
+        buff.append("@").append(callSite.getTag(LineNumberTag.IDENTIFIER))
+            .append(": ").append(callSite)
+            .append(" -> ").append(callee.getSignature());
+        return buff.toString();
     }
 }

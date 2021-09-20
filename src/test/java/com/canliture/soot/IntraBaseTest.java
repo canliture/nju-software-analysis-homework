@@ -42,6 +42,8 @@ public abstract class IntraBaseTest {
 
         // 保留变量原始的名字
         Options.v().setPhaseOption("jb", "use-original-names:true");
+        // 保留原始行号
+        Options.v().set_keep_line_number(true);
         // 输出Jimple IR文件到sootOutput目录中，方便调试查看
         Options.v().set_output_format(Options.output_format_jimple);
 
