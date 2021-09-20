@@ -1,6 +1,5 @@
 package com.canliture.soot;
 
-import com.canliture.soot.ass1.IntraCPTransformer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
