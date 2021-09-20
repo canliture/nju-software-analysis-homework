@@ -1,4 +1,5 @@
 对应的作业要求文档在 `docs/ass2-DeadCodeDetectionAnalysis.pdf`
+看完前6节课的作业(Lecture 6)
 
 为了实现死代码消除, 你需要完成constant propagation analysis 和 liveness analysis
 
