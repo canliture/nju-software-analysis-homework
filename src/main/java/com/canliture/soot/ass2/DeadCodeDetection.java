@@ -91,11 +91,11 @@ public class DeadCodeDetection {
                 // 是具体的值
                 if (cpValue != CPValue.getUndef() && cpValue != CPValue.getNAC()) {
                     if (cpValue.val() == 0) {
-                        // 恒为true, 那么false分支不可达
-                        unreachableBranches.addEdge(ifStmt, body.getUnits().getSuccOf(ifStmt));
-                    } else if (cpValue.val() == 1) {
-                        // 恒为false, 那么true分支不可达
+                        // 恒为true, 那么true分支不可达
                         unreachableBranches.addEdge(ifStmt, ifStmt.getTarget());
+                    } else if (cpValue.val() == 1) {
+                        // 恒为false, 那么false分支不可达
+                        unreachableBranches.addEdge(ifStmt, body.getUnits().getSuccOf(ifStmt));
                     }
                 }
             }
