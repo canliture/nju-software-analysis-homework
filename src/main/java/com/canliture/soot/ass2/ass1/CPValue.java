@@ -1,5 +1,7 @@
 package com.canliture.soot.ass2.ass1;
 
+import java.util.Objects;
+
 /**
  * Created by liture on 2021/9/19 1:19 下午
  *
@@ -7,8 +9,19 @@ package com.canliture.soot.ass2.ass1;
  */
 public class CPValue {
 
-    private final static CPValue NAC = new CPValue();
-    private final static CPValue UNDEF = new CPValue();
+    private final static CPValue NAC = new CPValue() {
+        @Override
+        public int hashCode() {
+            return Integer.MIN_VALUE;
+        }
+    };
+
+    private final static CPValue UNDEF = new CPValue() {
+        @Override
+        public int hashCode() {
+            return Integer.MAX_VALUE;
+        }
+    };
 
     /**
      * concrete value (整型，或者特殊地：0表示false，1表示true)
@@ -67,6 +80,21 @@ public class CPValue {
         }
 
         return getNAC();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (this == UNDEF && o == NAC) return false;
+        if (this == NAC && o == UNDEF) return false;
+        CPValue cpValue = (CPValue) o;
+        return val == cpValue.val;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(val);
     }
 
     @Override

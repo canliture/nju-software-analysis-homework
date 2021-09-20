@@ -4,10 +4,7 @@ import soot.Local;
 import soot.Value;
 import soot.jimple.*;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by liture on 2021/9/19 1:32 下午
@@ -152,6 +149,19 @@ public class FlowMap {
         }
 
         return resultMap;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        FlowMap flowMap = (FlowMap) o;
+        return Objects.equals(delegateMap, flowMap.delegateMap);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(delegateMap);
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.canliture.soot.ass2;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -93,6 +94,19 @@ public class FlowSet<T> {
         delegateSet.clear();
         delegateSet.addAll(another.delegateSet);
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        FlowSet<?> flowSet = (FlowSet<?>) o;
+        return Objects.equals(delegateSet, flowSet.delegateSet);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(delegateSet);
     }
 
     @Override

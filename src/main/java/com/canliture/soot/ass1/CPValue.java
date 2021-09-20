@@ -7,8 +7,19 @@ package com.canliture.soot.ass1;
  */
 public class CPValue {
 
-    private final static CPValue NAC = new CPValue();
-    private final static CPValue UNDEF = new CPValue();
+    private final static CPValue NAC = new CPValue() {
+        @Override
+        public int hashCode() {
+            return Integer.MIN_VALUE;
+        }
+    };
+
+    private final static CPValue UNDEF = new CPValue() {
+        @Override
+        public int hashCode() {
+            return Integer.MAX_VALUE;
+        }
+    };
 
     /**
      * concrete value
