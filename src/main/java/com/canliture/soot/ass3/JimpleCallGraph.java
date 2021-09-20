@@ -60,6 +60,8 @@ public class JimpleCallGraph {
                 }
             }
         }
+        // 初始情况下，entry methods总是可达的
+        reachableMethods.addAll(entries);
         return entries;
     }
 
@@ -69,8 +71,8 @@ public class JimpleCallGraph {
      */
     public Collection<Unit> getCallSiteIn(SootMethod method) {
         List<Unit> callSites = new LinkedList<>();
-        Body body = method.retrieveActiveBody();
-        if (body != null) {
+        if (method.hasActiveBody()) {
+            Body body = method.getActiveBody();
             for (Unit unit : body.getUnits()) {
                 Stmt stmt = (Stmt) unit;
                 if (stmt.containsInvokeExpr()) {
@@ -97,6 +99,9 @@ public class JimpleCallGraph {
      * @return
      */
     boolean addEdge(Unit callSite, SootMethod callee, CallKind callKind) {
+        // 维护 Reachable Methods
+        reachableMethods.add(callee);
+
         CallEdge callEdge = new CallEdge(callKind, callSite, callee);
 
         // 维护两个表
@@ -109,5 +114,23 @@ public class JimpleCallGraph {
         callees.add(callEdge);
 
         return ret;
+    }
+
+    /**
+     * @param method
+     * @return 返回method调用出去的边
+     */
+    public Set<CallEdge> getCallOutOf(SootMethod method) {
+        Set<CallEdge> result = caller2callee.computeIfAbsent(method, k -> new HashSet<>());
+        return Collections.unmodifiableSet(result);
+    }
+
+    /**
+     * @param method
+     * @return 返回method调用进来的边
+     */
+    public Set<CallEdge> getCallInOf(SootMethod method) {
+        Set<CallEdge> result = callee2caller.computeIfAbsent(method, k -> new HashSet<>());
+        return Collections.unmodifiableSet(result);
     }
 }
