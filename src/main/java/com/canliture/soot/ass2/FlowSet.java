@@ -94,4 +94,9 @@ public class FlowSet<T> {
         delegateSet.addAll(another.delegateSet);
         return this;
     }
+
+    @Override
+    public String toString() {
+        return delegateSet.toString();
+    }
 }

@@ -3,7 +3,6 @@ package com.canliture.soot.ass2;
 import com.canliture.soot.ass2.ass1.CPValue;
 import com.canliture.soot.ass2.ass1.FlowMap;
 import com.canliture.soot.ass2.ass1.IntraConstantPropagation;
-import jas.Pair;
 import soot.Body;
 import soot.Local;
 import soot.Unit;
@@ -147,21 +146,25 @@ public class DeadCodeDetection {
         return unreachableUnits;
     }
 
-    public Set<Unit> findDeadAssignments(Body body) {
+    private Set<Unit> findDeadAssignments(Body body) {
         // 执行活性分析，用于删除dead assignment；注意side-effect不能删除
         BriefUnitGraph cfg = new BriefUnitGraph(body);
         LiveVariableAnalysis liveVariableAnalysis = new LiveVariableAnalysis(cfg);
         liveVariableAnalysis.doAnalysis();
 
+        System.out.print("============================= ");
+        System.out.println(String.format("Liveness of method %s", body.getMethod().getSignature()));
         Set<Unit> deadAssignments = new HashSet<>();
         for (Unit unit : cfg) {
+            System.out.println(String.format("Before %s: %s", unit, liveVariableAnalysis.getFlowBefore(unit)));
+            System.out.println(String.format("After %s: %s", unit, liveVariableAnalysis.getFlowAfter(unit)));
             // 如果是赋值语句，判断是否是 dead assignment
             if (unit instanceof AssignStmt) {
                 AssignStmt assign = (AssignStmt) unit;
                 Value v = assign.getLeftOp();
                 if (v instanceof Local) {
                     Local local = (Local) v;
-                    FlowSet<Local> liveSet = liveVariableAnalysis.getFlowBefore(assign);
+                    FlowSet<Local> liveSet = liveVariableAnalysis.getFlowAfter(assign);
                     // 不活跃 & 没有副作用
                     if (!liveSet.contains(local) && !mayHaveSideEffect(assign)) {
                         // 不可达代码
@@ -170,6 +173,8 @@ public class DeadCodeDetection {
                 }
             }
         }
+        System.out.print("============================= ");
+        System.out.println(String.format("End of Liveness of method %s", body.getMethod().getSignature()));
         return deadAssignments;
     }
 }
