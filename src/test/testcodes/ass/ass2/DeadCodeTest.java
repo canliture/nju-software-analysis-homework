@@ -18,7 +18,7 @@ public class DeadCodeTest {
         int a, b, c;
         a = 0; // dead assignment
         a = 1;
-        b = a * 2; // dead assignment
+        b = a * 2; // dead assignment (思考？在检测到当前死代码之后, 删除死代码, 上面一行的a = 1又变成了dead assignment)
         c = 3;
         return c;
     }
