@@ -39,6 +39,11 @@ public class CHACallGraphBuilder {
                 // fixme 应该是找Type-Compatible的
                 if (m.getName().equals(method.getName())
                     && m.getParameterCount() == method.getParameterCount()) {
+                    // 没有参数列表，那么直接匹配到了
+                    if (m.getParameterCount() == 0) {
+                        return m;
+                    }
+                    // 否则对比参数列表
                     for (int i = 0; i < m.getParameterCount(); i++) {
                         Type t = m.getParameterType(i);
                         Type t1 = method.getParameterType(i);
@@ -101,8 +106,7 @@ public class CHACallGraphBuilder {
         Queue<SootMethod> workList = new LinkedList<>(entries);
         while (!workList.isEmpty()) {
             SootMethod method = workList.poll();
-            Body body = method.retrieveActiveBody();
-            if (body == null) {
+            if (!method.hasActiveBody()) {
                 continue;
             }
             Collection<Unit> callSites = cg.getCallSiteIn(method);
