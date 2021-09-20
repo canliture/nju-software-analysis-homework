@@ -11,7 +11,7 @@ public class CPValue {
     private final static CPValue UNDEF = new CPValue();
 
     /**
-     * concrete value (整型，或者特殊地：0表示false，1表示true)
+     * concrete value
      */
     private int val;
 
@@ -35,10 +35,6 @@ public class CPValue {
 
     public static CPValue makeConstant(int val) {
         return new CPValue(val);
-    }
-
-    public static CPValue makeConstant(boolean val) {
-        return val ? makeConstant(1) : makeConstant(0);
     }
 
     /**

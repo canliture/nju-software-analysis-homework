@@ -62,7 +62,7 @@ public class FlowMap {
 
     /**
      * 给定赋值右侧的soot Value; 计算它的格值
-     * @param sootValue 例如Local，BinaryExpression(整数的算数/比较运算)，IntConstant等
+     * @param sootValue 例如Local，BinaryExpression，IntConstant等
      * @return 计算得到的格值
      */
     public CPValue computeValue(Value sootValue) {
@@ -96,8 +96,7 @@ public class FlowMap {
                 return CPValue.getNAC();
             }
 
-            // - - - - - - - 两个都是常量
-            // 整数算数运算
+            // 两个都是常量
             if (binopExpr instanceof AddExpr) {
                 return CPValue.makeConstant(op1Val.val() + op2Val.val());
             } else if (binopExpr instanceof SubExpr) {
@@ -106,20 +105,6 @@ public class FlowMap {
                 return CPValue.makeConstant(op1Val.val() * op2Val.val());
             } else if (binopExpr instanceof DivExpr) {
                 return CPValue.makeConstant(op1Val.val() / op2Val.val());
-            }
-            // 整数比较运算
-            else if (binopExpr instanceof EqExpr) {
-                return CPValue.makeConstant(op1Val.val() == op2Val.val());
-            } else if (binopExpr instanceof NeExpr) {
-                return CPValue.makeConstant(op1Val.val() != op2Val.val());
-            } else if (binopExpr instanceof GeExpr) {
-                return CPValue.makeConstant(op1Val.val() >= op2Val.val());
-            } else if (binopExpr instanceof GtExpr) {
-                return CPValue.makeConstant(op1Val.val() > op2Val.val());
-            } else if (binopExpr instanceof LeExpr) {
-                return CPValue.makeConstant(op1Val.val() <= op2Val.val());
-            } else if (binopExpr instanceof LtExpr) {
-                return CPValue.makeConstant(op1Val.val() < op2Val.val());
             }
         }
 
