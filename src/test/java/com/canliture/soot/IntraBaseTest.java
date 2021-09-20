@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Created by liture on 2021/9/20 2:16 上午
  */
-public abstract class BaseTest {
+public abstract class IntraBaseTest {
 
     public abstract List<String> getProcessDirs();
 
@@ -22,6 +22,10 @@ public abstract class BaseTest {
 
     public abstract Transformer getTransformer();
 
+    public List<String> getExcluded() {
+        return Arrays.asList("com.canliture.*");
+    }
+
     @Before
     public void initializeSoot() {
         // 加载JDK到class path中
@@ -30,7 +34,7 @@ public abstract class BaseTest {
         Options.v().set_allow_phantom_refs(true);
 
         // 不分析我们的测试代码
-        Options.v().set_exclude(Arrays.asList("com.canliture.*"));
+        Options.v().set_exclude(getExcluded());
         Options.v().set_no_bodies_for_excluded(true);
 
         Options.v().set_prepend_classpath(true);
