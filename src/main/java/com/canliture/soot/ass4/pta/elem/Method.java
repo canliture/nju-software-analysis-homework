@@ -45,7 +45,7 @@ public class Method {
      * 4. Array element: array[i]    <- 在本作业中我们不考虑(一般实现的话处理成array[i]抽象成array.index_field)
      */
     private void initialize() {
-        pointerAffectingStmt = new HashSet<>();
+        pointerAffectingStmt = new LinkedHashSet<>();
 
         // 避免重复生成对象
         Map<Local, Variable> localMap = new HashMap<>();
@@ -66,7 +66,7 @@ public class Method {
                 if (l instanceof Local && r instanceof Local) {
                     Variable x = getVariable(localMap, (Local) l);
                     Variable y = getVariable(localMap, (Local) r);
-                    Assign assign = new Assign(x, y);
+                    Assign assign = new Assign(y, x);
                     addPointerAffectingStmt(stmt, assign);
                 }
                 // y = x.f
