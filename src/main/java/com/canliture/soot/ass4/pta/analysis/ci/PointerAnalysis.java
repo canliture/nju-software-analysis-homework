@@ -1,6 +1,13 @@
 package com.canliture.soot.ass4.pta.analysis.ci;
 
+import com.canliture.soot.ass3.JimpleCallGraph;
+import com.canliture.soot.ass4.pta.analysis.HeapModel;
 import com.canliture.soot.ass4.pta.elem.Method;
+import com.canliture.soot.ass4.pta.elem.Obj;
+import com.canliture.soot.ass4.pta.stmt.*;
+import soot.toolkits.scalar.Pair;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Created by liture on 2021/9/20 11:11 下午
@@ -13,25 +20,86 @@ import com.canliture.soot.ass4.pta.elem.Method;
 public class PointerAnalysis {
 
     /**
+     * 堆模型
+     */
+    private HeapModel heapModel;
+
+    private Method entry;
+
+    private WorkList WL;
+
+    private PointerFlowGraph PFG;
+
+    private Set<Statement> S;
+
+    private Set<Method> RM;
+
+    private JimpleCallGraph CG;
+
+    public PointerAnalysis(Method entry) {
+        this.entry = entry;
+        this.heapModel = HeapModel.v();
+    }
+
+    /**
      * 开始指针分析算法
      */
     public void solve() {
-        // todo
+        initialize();
+        analysis();
     }
 
     /**
      * 实现指针分析算法(Lecture 10, Page 115)的前两行;
      * 初始化各种数据结构，entry methods
      */
-    public void initialize() {
-        // todo
+    protected void initialize() {
+        WL = new WorkList();
+        PFG = new PointerFlowGraph();
+        S = new LinkedHashSet<>();
+        RM = new LinkedHashSet<>();
+        CG = new JimpleCallGraph();
+        addReachable(entry);
     }
 
     /**
      * 实现指针分析中的 WorkList 处理主循环
      */
-    public void analysis() {
-        // todo
+    protected void analysis() {
+        while (!WL.isEmpty()) {
+            Pair<Pointer, PointsToSet> entry = WL.remove();
+
+            // propagate
+            Pointer n = entry.getO1();
+            PointsToSet pts = entry.getO2();
+            PointsToSet delta = propagate(n, pts);
+
+            if (!(n instanceof Var)) {
+                continue;
+            }
+            // now, n represents a variable x
+
+            // foreach x.f = y
+            processInstanceStore((Var) n, delta);
+            // foreach y = x.f
+            processInstanceLoad((Var) n, delta);
+        }
+    }
+
+    protected void addReachable(Method m) {
+        if (!RM.contains(m)) {
+            RM.add(m);
+
+            // S U= S_m
+            Set<Statement> S_m = m.getStatements();
+            S.addAll(S_m);
+
+            // foreach i: x = new T() \in S_m
+            processAllocations(m);
+
+            // foreach x = y \in S_m
+            processLocalAssign(m);
+        }
     }
 
     /**
@@ -39,13 +107,21 @@ public class PointerAnalysis {
      * 另外还实现了Lecture 9, Page 43的 propagate(p, pts) 函数
      *
      * 这里合并了两个步骤到一个方法里面，用于降低冗余的计算
-     * @param p
+     * @param n
      * @param pts
-     * @return
+     * @return pts - pts(n)
      */
-    protected PointsToSet propagate(Pointer p, PointsToSet pts) {
-        // todo
-        return new PointsToSet();
+    protected PointsToSet propagate(Pointer n, PointsToSet pts) {
+        PointsToSet ptsOfn = PFG.getPts(n);
+        PointsToSet delta = PointsToSet.difference(pts, ptsOfn);
+        if (!delta.isEmpty()) {
+            ptsOfn.union(delta);
+            // foreach n -> s \in PFG
+            for (Pointer s : PFG.getSuccessorOf(n)) {
+                WL.addPointerEntry(s, delta);
+            }
+        }
+        return delta;
     }
 
     /**
@@ -54,7 +130,7 @@ public class PointerAnalysis {
      * @param t PFG边的destination
      */
     protected void addPFGEdge(Pointer s, Pointer t) {
-        // todo
+        PFG.addEdge(s, t);
     }
 
     /**
@@ -76,7 +152,17 @@ public class PointerAnalysis {
      * @param m
      */
     protected void processAllocations(Method m) {
-        // todo
+        Set<Statement> S_m = m.getStatements();
+        S_m.stream()
+            .filter(s -> s instanceof Allocation)
+            .forEach(s -> {
+                // i: x = new T()
+                Allocation i = (Allocation) s;
+                // o_i
+                Obj o = heapModel.getObj(i.getAllocationSite(), i.getType(), m);
+                // <x, o_i>
+                WL.addPointerEntry(PFG.getVar(i.getVar()), PointsToSet.singleton(o));
+            });
     }
 
     /**
@@ -87,7 +173,15 @@ public class PointerAnalysis {
      * @param m
      */
     protected void processLocalAssign(Method m) {
-        // todo
+        Set<Statement> S_m = m.getStatements();
+        S_m.stream()
+            .filter(s -> s instanceof Assign)
+            .forEach(s -> {
+                // x = y
+                Assign assign = (Assign) s;
+                // y -> x
+                addPFGEdge(PFG.getVar(assign.getFrom()), PFG.getVar(assign.getTo()));
+            });
     }
 
     /**
@@ -95,11 +189,21 @@ public class PointerAnalysis {
      * 如: x.f = y
      *
      * Lecture 10, Page 124 Solve函数中处理store语句的foreach循环
-     * @param var pts改变的指针节点
+     * @param var pts改变的指针节点, 对应的指针变量为x
      * @param pts 改变的部分delta
      */
     protected void processInstanceStore(Var var, PointsToSet pts) {
-        // todo
+        for (Obj o_i : pts) {
+            S.stream()   // x.f = y
+                .filter(s -> s instanceof InstanceStore
+                        && ((InstanceStore) s).getVariable().equals(var.getVariable()))
+                .forEach(s -> {
+                    // x.f = y
+                    InstanceStore store = (InstanceStore) s;
+                    // y -> o_i.f
+                    addPFGEdge(PFG.getVar(store.getFrom()), PFG.getInstanceField(o_i, store.getField()));
+                });
+        }
     }
 
     /**
@@ -107,10 +211,20 @@ public class PointerAnalysis {
      * 如: y = x.f
      *
      * Lecture 10, Page 124 Solve函数中处理load语句的foreach循环
-     * @param var pts改变的指针节点
+     * @param var pts改变的指针节点, 对应的指针变量为x
      * @param pts 改变的部分delta
      */
     protected void processInstanceLoad(Var var, PointsToSet pts) {
-        // todo
+        for (Obj o_i : pts) {
+            S.stream()   // x = n.f
+                .filter(s -> s instanceof InstanceLoad
+                        && ((InstanceLoad) s).getBase().equals(var.getVariable()))
+                .forEach(s -> {
+                    // y = x.f
+                    InstanceLoad load = (InstanceLoad) s;
+                    // o_i.f -> y
+                    addPFGEdge(PFG.getInstanceField(o_i, load.getField()), PFG.getVar(load.getTo()));
+                });
+        }
     }
 }

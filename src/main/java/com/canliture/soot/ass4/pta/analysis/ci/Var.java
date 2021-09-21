@@ -12,6 +12,11 @@ import com.canliture.soot.ass4.pta.elem.Variable;
  */
 public class Var extends Pointer {
 
+    public static Var getPointer(Variable variable) {
+        // todo
+        return null;
+    }
+
     /**
      * @return 返回PFG上该指针节点对应的变量
      */

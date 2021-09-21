@@ -25,4 +25,12 @@ public class Allocation extends Statement {
         // todo
         return null;
     }
+
+    /**
+     * 这里仅仅返回字符串，目前它没用到
+     * @return
+     */
+    public String getType() {
+        return "allocation-site abstraction";
+    }
 }

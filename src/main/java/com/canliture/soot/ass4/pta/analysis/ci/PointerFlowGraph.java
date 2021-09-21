@@ -53,4 +53,13 @@ public class PointerFlowGraph {
         // todo
         return Collections.emptySet();
     }
+
+    /**
+     * @param n
+     * @return pts(n)
+     */
+    public PointsToSet getPts(Pointer n) {
+        // todo
+        return new PointsToSet();
+    }
 }
