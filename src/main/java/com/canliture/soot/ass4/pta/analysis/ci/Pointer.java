@@ -12,11 +12,16 @@ package com.canliture.soot.ass4.pta.analysis.ci;
  */
 public class Pointer {
 
+    private PointsToSet pts;
+
+    protected Pointer() {
+        pts = new PointsToSet();
+    }
+
     /**
      * @return 指针的指向集合; 每个指针在创建时都关联了一个空集，所以不会返回null
      */
     public PointsToSet getPointsToSet() {
-        // todo
-        return new PointsToSet();
+        return pts;
     }
 }

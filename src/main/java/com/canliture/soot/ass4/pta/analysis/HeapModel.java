@@ -26,7 +26,6 @@ public class HeapModel {
      * @return 从当前堆模型中获取 抽象对象
      */
     public Obj getObj(Object allocSite, String type, Method m) {
-        // todo
-        return null;
+        return new Obj(allocSite, type, m);
     }
 }

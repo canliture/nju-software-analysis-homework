@@ -3,9 +3,9 @@ package com.canliture.soot.ass4.pta.analysis.ci;
 import com.canliture.soot.ass4.pta.elem.Field;
 import com.canliture.soot.ass4.pta.elem.Obj;
 import com.canliture.soot.ass4.pta.elem.Variable;
+import soot.toolkits.scalar.Pair;
 
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by liture on 2021/9/20 11:11 下午
@@ -15,13 +15,23 @@ import java.util.Set;
  */
 public class PointerFlowGraph {
 
+    private Map<Variable, Var> varMap = new HashMap<>();
+
+    private Map<Pair<Obj, Field>, InstanceField> instanceFieldMap = new HashMap<>();
+
+    private Map<Pointer, Set<Pointer>> node2Succes = new HashMap<>();
+
     /**
      * @param variable
      * @return 返回给定变量所关联的PFG上的Var指针节点
      */
     public Var getVar(Variable variable) {
-        // todo
-        return null;
+        Var var;
+        if ((var = varMap.get(variable)) == null) {
+            var = new Var(variable);
+            varMap.put(variable, var);
+        }
+        return var;
     }
 
     /**
@@ -30,8 +40,12 @@ public class PointerFlowGraph {
      * @return 返回给定对象+字段所关联的PFG上的InstanceField指针节点
      */
     public InstanceField getInstanceField(Obj obj, Field field) {
-        // todo
-        return null;
+        InstanceField ret;
+        Pair<Obj, Field> pair = new Pair<>(obj, field);
+        if ((ret = instanceFieldMap.get(pair)) == null) {
+            ret = new InstanceField(obj, field);
+        }
+        return ret;
     }
 
     /**
@@ -41,8 +55,24 @@ public class PointerFlowGraph {
      * @return 如果边早已经存在，返回false；否则返回true
      */
     public boolean addEdge(Pointer s, Pointer t) {
-        // todo
-        return false;
+        addIndex(s);
+        addIndex(t);
+        Set<Pointer> succes = node2Succes.computeIfAbsent(s, n -> new LinkedHashSet<>());
+        return succes.add(t);
+    }
+
+    public void addIndex(Pointer p) {
+        if (p instanceof Var) {
+            Var var = (Var) p;
+            Variable variable = var.getVariable();
+            varMap.put(variable, var);
+        } else if (p instanceof InstanceField) {
+            InstanceField instanceField = (InstanceField) p;
+            Obj obj = instanceField.getBase();
+            Field field = instanceField.getField();
+            Pair<Obj, Field> key = new Pair<>(obj, field);
+            instanceFieldMap.put(key, instanceField);
+        }
     }
 
     /**
@@ -50,16 +80,6 @@ public class PointerFlowGraph {
      * @return 返回给定指针节点在PFG上的后继节点
      */
     public Set<Pointer> getSuccessorOf(Pointer pointer) {
-        // todo
-        return Collections.emptySet();
-    }
-
-    /**
-     * @param n
-     * @return pts(n)
-     */
-    public PointsToSet getPts(Pointer n) {
-        // todo
-        return new PointsToSet();
+        return node2Succes.computeIfAbsent(pointer, n -> new LinkedHashSet<>());
     }
 }

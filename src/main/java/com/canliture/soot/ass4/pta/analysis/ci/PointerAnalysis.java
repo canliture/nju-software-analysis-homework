@@ -5,6 +5,7 @@ import com.canliture.soot.ass4.pta.analysis.HeapModel;
 import com.canliture.soot.ass4.pta.elem.Method;
 import com.canliture.soot.ass4.pta.elem.Obj;
 import com.canliture.soot.ass4.pta.stmt.*;
+import soot.SootMethod;
 import soot.toolkits.scalar.Pair;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -22,22 +23,23 @@ public class PointerAnalysis {
     /**
      * 堆模型
      */
-    private HeapModel heapModel;
+    protected HeapModel heapModel;
 
-    private Method entry;
+    protected SootMethod sootMethod;
+    protected Method entry;
 
-    private WorkList WL;
+    protected WorkList WL;
 
-    private PointerFlowGraph PFG;
+    protected PointerFlowGraph PFG;
 
-    private Set<Statement> S;
+    protected Set<Statement> S;
 
-    private Set<Method> RM;
+    protected Set<Method> RM;
 
-    private JimpleCallGraph CG;
+    protected JimpleCallGraph CG;
 
-    public PointerAnalysis(Method entry) {
-        this.entry = entry;
+    public PointerAnalysis(SootMethod entry) {
+        this.sootMethod = entry;
         this.heapModel = HeapModel.v();
     }
 
@@ -59,13 +61,14 @@ public class PointerAnalysis {
         S = new LinkedHashSet<>();
         RM = new LinkedHashSet<>();
         CG = new JimpleCallGraph();
+        entry = new Method(sootMethod);
         addReachable(entry);
     }
 
     /**
      * 实现指针分析中的 WorkList 处理主循环
      */
-    protected void analysis() {
+    private void analysis() {
         while (!WL.isEmpty()) {
             Pair<Pointer, PointsToSet> entry = WL.remove();
 
@@ -112,7 +115,7 @@ public class PointerAnalysis {
      * @return pts - pts(n)
      */
     protected PointsToSet propagate(Pointer n, PointsToSet pts) {
-        PointsToSet ptsOfn = PFG.getPts(n);
+        PointsToSet ptsOfn = n.getPointsToSet();
         PointsToSet delta = PointsToSet.difference(pts, ptsOfn);
         if (!delta.isEmpty()) {
             ptsOfn.union(delta);
@@ -194,15 +197,12 @@ public class PointerAnalysis {
      */
     protected void processInstanceStore(Var var, PointsToSet pts) {
         for (Obj o_i : pts) {
-            S.stream()   // x.f = y
-                .filter(s -> s instanceof InstanceStore
-                        && ((InstanceStore) s).getVariable().equals(var.getVariable()))
-                .forEach(s -> {
-                    // x.f = y
-                    InstanceStore store = (InstanceStore) s;
-                    // y -> o_i.f
-                    addPFGEdge(PFG.getVar(store.getFrom()), PFG.getInstanceField(o_i, store.getField()));
-                });
+            Set<InstanceStore> stores = var.getVariable().getStores();
+            // x.f = y
+            for (InstanceStore store : stores) {
+                // y -> o_i.f
+                addPFGEdge(PFG.getVar(store.getFrom()), PFG.getInstanceField(o_i, store.getField()));
+            }
         }
     }
 
@@ -216,15 +216,12 @@ public class PointerAnalysis {
      */
     protected void processInstanceLoad(Var var, PointsToSet pts) {
         for (Obj o_i : pts) {
-            S.stream()   // x = n.f
-                .filter(s -> s instanceof InstanceLoad
-                        && ((InstanceLoad) s).getBase().equals(var.getVariable()))
-                .forEach(s -> {
-                    // y = x.f
-                    InstanceLoad load = (InstanceLoad) s;
-                    // o_i.f -> y
-                    addPFGEdge(PFG.getInstanceField(o_i, load.getField()), PFG.getVar(load.getTo()));
-                });
+            Set<InstanceLoad> loads = var.getVariable().getLoads();
+            // y = x.f
+            for (InstanceLoad load : loads) {
+                // o_i.f -> y
+                addPFGEdge(PFG.getInstanceField(o_i, load.getField()), PFG.getVar(load.getTo()));
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ import com.canliture.soot.ass4.pta.elem.Obj;
 import com.google.common.collect.Iterators;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -97,5 +98,23 @@ public class PointsToSet implements Iterable<Obj> {
                 this.pts.remove(o);
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return pts.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PointsToSet that = (PointsToSet) o;
+        return Objects.equals(pts, that.pts);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(pts);
     }
 }
