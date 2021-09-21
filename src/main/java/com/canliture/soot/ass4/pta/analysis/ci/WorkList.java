@@ -8,7 +8,7 @@ package com.canliture.soot.ass4.pta.analysis.ci;
 public class WorkList {
 
     /**
-     * 用一对 <p, pts(p)> 初始化workList
+     * 添加一条 <p, pts(p)> 到workList
      * @param p
      * @param pts
      */
