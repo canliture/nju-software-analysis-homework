@@ -15,11 +15,11 @@ import java.util.*;
  */
 public class PointerFlowGraph {
 
-    private Map<Variable, Var> varMap = new HashMap<>();
+    protected Map<Variable, Var> varMap = new HashMap<>();
 
-    private Map<Pair<Obj, Field>, InstanceField> instanceFieldMap = new HashMap<>();
+    protected Map<Pair<Obj, Field>, InstanceField> instanceFieldMap = new HashMap<>();
 
-    private Map<Pointer, Set<Pointer>> node2Succes = new HashMap<>();
+    protected Map<Pointer, Set<Pointer>> node2Succes = new HashMap<>();
 
     /**
      * @param variable

@@ -52,6 +52,6 @@ public class InstanceField extends Pointer {
 
     @Override
     public String toString() {
-        return o + "." + f;
+        return "(" + o + ")" + "." + f;
     }
 }

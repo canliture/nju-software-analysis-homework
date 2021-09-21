@@ -1,10 +1,6 @@
 package com.canliture.soot.ass4.pta.analysis.ci;
 
-import soot.Scene;
-import soot.SceneTransformer;
-import soot.SootClass;
-import soot.SootMethod;
-
+import soot.*;
 import java.util.Map;
 
 /**
@@ -31,7 +27,15 @@ public class PointerAnalysisTransformer extends SceneTransformer {
             pointerAnalysis.solve();
 
             PointerFlowGraph PFG = pointerAnalysis.PFG;
-            System.out.println(PFG);
+            System.out.println("======== PFG ========");
+            for (Var var : PFG.varMap.values()) {
+                StringBuilder buff = new StringBuilder();
+                buff.append(var).append("\n");
+                buff.append("\t pts: ").append(var.getPointsToSet()).append("\n");
+                buff.append("\t edges: ").append(PFG.getSuccessorOf(var)).append("\n");
+                System.out.println(buff);
+            }
+            System.out.println("======== End of PFG ========\n");
         }
     }
 }
