@@ -1,7 +1,9 @@
 package com.canliture.soot.ass4.pta.analysis.ci;
 
 import soot.*;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by liture on 2021/9/20 11:12 下午
@@ -28,11 +30,14 @@ public class PointerAnalysisTransformer extends SceneTransformer {
 
             PointerFlowGraph PFG = pointerAnalysis.PFG;
             System.out.println("======== PFG ========");
-            for (Var var : PFG.varMap.values()) {
+            Set<Pointer> pointerSet = new LinkedHashSet<>();
+            pointerSet.addAll(PFG.varMap.values());
+            pointerSet.addAll(PFG.instanceFieldMap.values());
+            for (Pointer pointer : pointerSet) {
                 StringBuilder buff = new StringBuilder();
-                buff.append(var).append("\n");
-                buff.append("\t pts: ").append(var.getPointsToSet()).append("\n");
-                buff.append("\t edges: ").append(PFG.getSuccessorOf(var)).append("\n");
+                buff.append(pointer).append("\n");
+                buff.append("\t pts: ").append(pointer.getPointsToSet()).append("\n");
+                buff.append("\t edges: ").append(PFG.getSuccessorOf(pointer)).append("\n");
                 System.out.println(buff);
             }
             System.out.println("======== End of PFG ========\n");
