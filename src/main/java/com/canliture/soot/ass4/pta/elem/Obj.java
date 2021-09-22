@@ -1,5 +1,7 @@
 package com.canliture.soot.ass4.pta.elem;
 
+import soot.jimple.AssignStmt;
+import soot.tagkit.LineNumberTag;
 import java.util.Objects;
 
 /**
@@ -38,6 +40,13 @@ public class Obj {
 
     @Override
     public String toString() {
-        return allocSite.toString();
+        AssignStmt assignStmt = (AssignStmt) allocSite;
+        StringBuilder buff = new StringBuilder();
+        buff.append(method.getSootMethod().getSignature());
+        buff.append("@");
+        buff.append(assignStmt.getTag(LineNumberTag.IDENTIFIER));
+        buff.append(": ");
+        buff.append(assignStmt);
+        return buff.toString();
     }
 }
