@@ -64,7 +64,7 @@ public class Variable {
 
     @Override
     public String toString() {
-        return local.getName();
+        return toUniqueString();
     }
 
     public String toUniqueString() {
