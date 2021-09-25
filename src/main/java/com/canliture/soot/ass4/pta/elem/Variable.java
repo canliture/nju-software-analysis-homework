@@ -49,6 +49,10 @@ public class Variable {
         return calls;
     }
 
+    public Method getMethod() {
+        return method;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
