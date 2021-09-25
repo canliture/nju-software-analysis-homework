@@ -98,7 +98,7 @@ public class Method {
                     if (stmt instanceof AssignStmt && ((AssignStmt) stmt).getLeftOp() instanceof Local) {
                         // r = x.k(arg, ...)
                         Variable r = getVariable(localMap, (Local) ((AssignStmt) stmt).getLeftOp());
-                        callSite = new CallSite(stmt, r);
+                        callSite = new CallSite(stmt, x, r);
                     } else {
                         // x.k(arg, ...)
                         callSite = new CallSite(stmt, x);
