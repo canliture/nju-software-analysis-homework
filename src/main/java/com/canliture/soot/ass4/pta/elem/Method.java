@@ -103,7 +103,7 @@ public class Method {
                         // x.k(arg, ...)
                         callSite = new CallSite(stmt, x);
                     }
-                } else {
+                } else if (invokeExpr instanceof StaticInvokeExpr) {
                     // ClassName.k(arg, ...)   : static call
                     callSite = new CallSite(stmt);
                 }
