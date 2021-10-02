@@ -87,8 +87,18 @@ public class JimpleCallGraph {
      * @param method
      * @return 返回是否给定method在调用图上是可达的；entry Method总是可达的
      */
-    boolean contains(SootMethod method) {
+    public boolean contains(SootMethod method) {
         return reachableMethods.contains(method);
+    }
+
+    public boolean contains(Unit callSite, SootMethod callee) {
+        Collection<Unit> callSites = getCallSiteIn(callee);
+        for (Unit site : callSites) {
+            if (site == callSite) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -98,7 +108,7 @@ public class JimpleCallGraph {
      * @param callKind 调用类型
      * @return
      */
-    boolean addEdge(Unit callSite, SootMethod callee, CallKind callKind) {
+    public boolean addEdge(Unit callSite, SootMethod callee, CallKind callKind) {
         // 维护 Reachable Methods
         reachableMethods.add(callee);
 
