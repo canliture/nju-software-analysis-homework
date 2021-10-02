@@ -23,6 +23,18 @@ public class Obj {
         this.method = method;
     }
 
+    public Object getAllocSite() {
+        return allocSite;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public Method getMethod() {
+        return method;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
