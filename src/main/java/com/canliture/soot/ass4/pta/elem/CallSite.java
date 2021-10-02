@@ -46,6 +46,18 @@ public class CallSite {
         this.ret = ret;
     }
 
+    public Stmt getCallSite() {
+        return callSite;
+    }
+
+    public Variable getReceiver() {
+        return receiver;
+    }
+
+    public Variable getRet() {
+        return ret;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
