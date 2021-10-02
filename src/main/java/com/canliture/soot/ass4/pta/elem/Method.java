@@ -9,7 +9,6 @@ import soot.Value;
 import soot.jimple.*;
 import soot.tagkit.LineNumberTag;
 import soot.tagkit.Tag;
-
 import java.util.*;
 
 /**
@@ -22,6 +21,8 @@ public class Method {
     private final SootMethod delegate;
 
     private Set<Statement> pointerAffectingStmt;
+
+    private Map<Local, Variable> localMap;
 
     public Method(SootMethod sootMethod) {
         this.delegate = sootMethod;
@@ -48,7 +49,7 @@ public class Method {
         pointerAffectingStmt = new LinkedHashSet<>();
 
         // 避免重复生成对象
-        Map<Local, Variable> localMap = new HashMap<>();
+        localMap = new HashMap<>();
 
         for (Unit unit : delegate.retrieveActiveBody().getUnits()) {
             Stmt stmt = (Stmt) unit;
@@ -58,21 +59,21 @@ public class Method {
                 Value r = assignStmt.getRightOp();
                 // x = new T
                 if (l instanceof Local && r instanceof NewExpr) {
-                    Variable x = getVariable(localMap, (Local) l);
+                    Variable x = getVariable((Local) l);
                     Allocation alloc = new Allocation(x, assignStmt);
                     addPointerAffectingStmt(stmt, alloc);
                 }
                 // x = y
                 if (l instanceof Local && r instanceof Local) {
-                    Variable x = getVariable(localMap, (Local) l);
-                    Variable y = getVariable(localMap, (Local) r);
+                    Variable x = getVariable((Local) l);
+                    Variable y = getVariable((Local) r);
                     Assign assign = new Assign(y, x);
                     addPointerAffectingStmt(stmt, assign);
                 }
                 // y = x.f
                 if (l instanceof Local && r instanceof InstanceFieldRef) {
-                    Variable y = getVariable(localMap, (Local) l);
-                    Variable x = getVariable(localMap, (Local) ((InstanceFieldRef) r).getBase());
+                    Variable y = getVariable((Local) l);
+                    Variable x = getVariable((Local) ((InstanceFieldRef) r).getBase());
                     Field f = new Field((InstanceFieldRef) r);
                     InstanceLoad load = new InstanceLoad(y, x, f);
                     x.getLoads().add(load);
@@ -80,9 +81,9 @@ public class Method {
                 }
                 // x.f = y
                 if (l instanceof InstanceFieldRef && r instanceof Local) {
-                    Variable x = getVariable(localMap, (Local) ((InstanceFieldRef) l).getBase());
+                    Variable x = getVariable((Local) ((InstanceFieldRef) l).getBase());
                     Field f = new Field((InstanceFieldRef) l);
-                    Variable y = getVariable(localMap, (Local) r);
+                    Variable y = getVariable((Local) r);
                     InstanceStore store = new InstanceStore(x, f, y);
                     x.getStores().add(store);
                     addPointerAffectingStmt(stmt, store);
@@ -94,10 +95,10 @@ public class Method {
 
                 InvokeExpr invokeExpr = stmt.getInvokeExpr();
                 if (invokeExpr instanceof InstanceInvokeExpr) {
-                    x = getVariable(localMap, (Local) ((InstanceInvokeExpr) invokeExpr).getBase());
+                    x = getVariable((Local) ((InstanceInvokeExpr) invokeExpr).getBase());
                     if (stmt instanceof AssignStmt && ((AssignStmt) stmt).getLeftOp() instanceof Local) {
                         // r = x.k(arg, ...)
-                        Variable r = getVariable(localMap, (Local) ((AssignStmt) stmt).getLeftOp());
+                        Variable r = getVariable((Local) ((AssignStmt) stmt).getLeftOp());
                         callSite = new CallSite(stmt, x, r);
                     } else {
                         // x.k(arg, ...)
@@ -127,8 +128,35 @@ public class Method {
         pointerAffectingStmt.add(ir);
     }
 
-    private Variable getVariable(Map<Local, Variable> localMap, Local local) {
+    public Variable getVariable(Local local) {
         return localMap.computeIfAbsent(local, k -> new Variable(local, this));
+    }
+
+    public List<Variable> getRetVariable() {
+        List<Variable> variableList = new LinkedList<>();
+        for (Unit unit : delegate.getActiveBody().getUnits()) {
+            if (unit instanceof ReturnStmt) {
+                ReturnStmt returnStmt = (ReturnStmt) unit;
+                Local local = (Local) returnStmt.getOp();
+                variableList.add(getVariable(local));
+            }
+        }
+        return variableList;
+    }
+
+    public List<Variable> getParams() {
+        List<Variable> variableList = new LinkedList<>();
+        List<Local> locals = delegate.getActiveBody().getParameterLocals();
+        for (Local local : locals) {
+            Variable variable = getVariable(local);
+            variableList.add(variable);
+        }
+        return variableList;
+    }
+
+    public Variable getThisVariable() {
+        Local thisLocal = delegate.getActiveBody().getThisLocal();
+        return getVariable(thisLocal);
     }
 
     /**
