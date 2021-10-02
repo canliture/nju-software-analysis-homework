@@ -4,10 +4,6 @@ package ass4;
  * Created by liture on 2021/9/22 8:54 下午
  */
 public class CallTest {
-
-    static void main() {
-        A.main();
-    }
 }
 
 class A {
