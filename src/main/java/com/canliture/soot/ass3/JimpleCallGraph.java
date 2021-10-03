@@ -91,10 +91,16 @@ public class JimpleCallGraph {
         return reachableMethods.contains(method);
     }
 
+    /**
+     * 是否调用边在CallGraph中存在
+     * @param callSite 调用点
+     * @param callee 被调用函数
+     * @return true, 如果存在
+     */
     public boolean contains(Unit callSite, SootMethod callee) {
-        Collection<Unit> callSites = getCallSiteIn(callee);
-        for (Unit site : callSites) {
-            if (site == callSite) {
+        Set<CallEdge> callEdges = getCallInOf(callee);
+        for (CallEdge callEdge : callEdges) {
+            if (callEdge.getCallSite() == callSite) {
                 return true;
             }
         }
