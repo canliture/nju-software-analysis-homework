@@ -137,8 +137,10 @@ public class Method {
         for (Unit unit : delegate.getActiveBody().getUnits()) {
             if (unit instanceof ReturnStmt) {
                 ReturnStmt returnStmt = (ReturnStmt) unit;
-                Local local = (Local) returnStmt.getOp();
-                variableList.add(getVariable(local));
+                Value v = returnStmt.getOp();
+                if (v instanceof Local) {
+                    variableList.add(getVariable((Local) v));
+                }
             }
         }
         return variableList;
