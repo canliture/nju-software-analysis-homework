@@ -1,13 +1,20 @@
 package com.canliture.soot.ass4.pta.analysis.ci;
 
+import com.canliture.soot.ass3.CallKind;
 import com.canliture.soot.ass3.JimpleCallGraph;
 import com.canliture.soot.ass4.pta.analysis.HeapModel;
+import com.canliture.soot.ass4.pta.elem.CallSite;
 import com.canliture.soot.ass4.pta.elem.Method;
 import com.canliture.soot.ass4.pta.elem.Obj;
+import com.canliture.soot.ass4.pta.elem.Variable;
 import com.canliture.soot.ass4.pta.stmt.*;
-import soot.SootMethod;
+import soot.*;
+import soot.jimple.AssignStmt;
+import soot.jimple.InvokeExpr;
+import soot.jimple.NewExpr;
 import soot.toolkits.scalar.Pair;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -80,12 +87,18 @@ public class PointerAnalysis {
             if (!(n instanceof Var)) {
                 continue;
             }
+
             // now, n represents a variable x
+            Var x = (Var) n;
 
             // foreach x.f = y
-            processInstanceStore((Var) n, delta);
+            processInstanceStore(x, delta);
+
             // foreach y = x.f
-            processInstanceLoad((Var) n, delta);
+            processInstanceLoad(x, delta);
+
+            // ProcessCall(x, o_i)
+            processCall(x, delta);
         }
     }
 
@@ -227,4 +240,112 @@ public class PointerAnalysis {
             }
         }
     }
+
+    /**
+     * 处理函数调用，型如：l: r = var.k(a1, ..., an)
+     * @param var
+     * @param pts
+     */
+    protected void processCall(Var var, PointsToSet pts) {
+        Method curMethod = var.getVariable().getMethod();
+
+        for (Obj o_i : pts) {
+            Set<Call> calls = var.getVariable().getCalls();
+            for (Call call : calls) {
+                // r = var.k(a1, ..., an)
+                CallSite callSite = call.getCallSite();
+                // m = Dispatch(o_i, k)
+                Method m = dispatch(o_i, callSite);
+                // add <m_this, {o_i}> to WL
+                WL.addPointerEntry(PFG.getVar(m.getThisVariable()), PointsToSet.singleton(o_i));
+
+                // if l -> m not in CG
+                if (!CG.contains(callSite.getCallSite(), m.getSootMethod())) {
+                    // add l -> m to CG
+                    CG.addEdge(callSite.getCallSite(), m.getSootMethod(), CallKind.getCallKind(callSite.getCallSite()));
+
+                    addReachable(m);
+
+                    // foreach parameter p_i of m do
+                    //   AddEdge(a_i, p_i)
+                    InvokeExpr invoke = callSite.getCallSite().getInvokeExpr();
+                    for (int i = 0; i < m.getParams().size(); i++) {
+                        Local arg = (Local) invoke.getArg(i);
+                        Variable argVariable = curMethod.getVariable(arg);
+
+                        Variable paramVariable = m.getParams().get(i);
+
+                        addPFGEdge(PFG.getVar(argVariable), PFG.getVar(paramVariable));
+                    }
+
+                    // AddEdge(m_ret, r)
+                    Variable callerRetVar = callSite.getRet();
+                    if (callerRetVar != null) {
+                        List<Variable> calleeRetVariableList = m.getRetVariable();
+                        for (Variable calleeRetVar : calleeRetVariableList) {
+                            addPFGEdge(PFG.getVar(calleeRetVar), PFG.getVar(callerRetVar));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    protected Method dispatch(Obj o, CallSite callSite) {
+        AssignStmt assignStmt = (AssignStmt) o.getAllocSite();
+        NewExpr newExpr = (NewExpr) assignStmt.getRightOp();
+        RefType refType = (RefType) newExpr.getType();
+
+        SootClass sootClass = refType.getSootClass();
+
+        InvokeExpr invokeExpr = callSite.getCallSite().getInvokeExpr();
+        SootMethod sootMethod = invokeExpr.getMethod();
+
+        SootMethod dispatch = dispatch(sootClass, sootMethod);
+
+        Method method = null;
+        for (Method m : RM) {
+            if (m.getSootMethod() == dispatch) {
+                method = m;
+                break;
+            }
+        }
+        if (method == null) {
+            method = new Method(dispatch);
+        }
+        return method;
+    }
+
+    /**
+     * @see com.canliture.soot.ass3.CHACallGraphBuilder#dispatch
+     */
+    private SootMethod dispatch(SootClass sootClass, SootMethod method) {
+        for (SootMethod m : sootClass.getMethods()) {
+            if (!m.isAbstract()) {
+                // fixme 这里判断方法签名匹配有点粗糙
+                // fixme 应该是找Type-Compatible的
+                if (m.getName().equals(method.getName())
+                        && m.getParameterCount() == method.getParameterCount()) {
+                    // 没有参数列表，那么直接匹配到了
+                    if (m.getParameterCount() == 0) {
+                        return m;
+                    }
+                    // 否则对比参数列表
+                    for (int i = 0; i < m.getParameterCount(); i++) {
+                        Type t = m.getParameterType(i);
+                        Type t1 = method.getParameterType(i);
+                        if (t.toQuotedString().equals(t1.toQuotedString())) {
+                            return m;
+                        }
+                    }
+                }
+            }
+        }
+        SootClass superClass = sootClass.getSuperclassUnsafe();
+        if (superClass != null) {
+            return dispatch(superClass, method);
+        }
+        return null;
+    }
+
 }
