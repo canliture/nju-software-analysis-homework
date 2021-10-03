@@ -35,6 +35,9 @@ public class JimpleCallGraph {
     public JimpleCallGraph() {
         for (SootClass clazz : Scene.v().getApplicationClasses()) {
             for (SootMethod method : clazz.getMethods()) {
+                if (!method.isConcrete()) {
+                    continue;
+                }
                 Body body = method.retrieveActiveBody();
                 if (body != null) {
                     for (Unit unit : body.getUnits()) {
