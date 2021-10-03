@@ -133,7 +133,10 @@ public class PointerAnalysis {
      * @param t PFG边的destination
      */
     protected void addPFGEdge(Pointer s, Pointer t) {
-        PFG.addEdge(s, t);
+        boolean add = PFG.addEdge(s, t);
+        if (add) {
+            WL.addPointerEntry(t, s.getPointsToSet());
+        }
     }
 
     /**
