@@ -24,8 +24,14 @@ public class Method {
 
     private Map<Local, Variable> localMap;
 
+    /**
+     * 包含当前方法声明的类型
+     */
+    private Type enclosingType;
+
     public Method(SootMethod sootMethod) {
         this.delegate = sootMethod;
+        this.enclosingType = new Type(sootMethod.getDeclaringClass());
         initialize();
     }
 
@@ -171,6 +177,10 @@ public class Method {
 
     public SootMethod getSootMethod() {
         return delegate;
+    }
+
+    public Type getClassType() {
+        return enclosingType;
     }
 
     @Override
