@@ -18,7 +18,7 @@
 - com.canliture.soot.ass4
   - 第四次作业的代码实现
   - 流不敏感指针分析
-- com.canliture.soot.ass5
+- com.canliture.soot.ass5 (仍未完成)
   - 第五次作业的代码实现
   - 流敏感指针分析
   
