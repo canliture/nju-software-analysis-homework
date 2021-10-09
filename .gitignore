@@ -1,0 +1,7 @@
+.idea
+target
+out
+*.iml
+sootOutput
+.DS_Store
+__MACOSX
