@@ -16,3 +16,12 @@
   - 第三次作业的代码实现
   - CHA用于构造调用图
 - com.canliture.soot.ass4
+  - 第四次作业的代码实现
+  - 流不敏感指针分析
+- com.canliture.soot.ass5
+  - 第五次作业的代码实现
+  - 流敏感指针分析
+  
+### 测试
+src/test/java/目录下
+com.canliture.soot.ass{n}
