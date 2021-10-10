@@ -26,4 +26,6 @@
 
 我们的指针分析并不仅仅处理virtual call，也处理special/static call
 
+注：静态调用在ass5里面统一实现，ass4就不实现了
+
 
