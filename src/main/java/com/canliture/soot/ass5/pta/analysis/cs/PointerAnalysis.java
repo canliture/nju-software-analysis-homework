@@ -1,11 +1,19 @@
 package com.canliture.soot.ass5.pta.analysis.cs;
 
-import com.canliture.soot.ass3.JimpleCallGraph;
 import com.canliture.soot.ass5.pta.analysis.HeapModel;
+import com.canliture.soot.ass5.pta.analysis.cg.CallKind;
+import com.canliture.soot.ass5.pta.analysis.cg.JimpleCallGraph;
+import com.canliture.soot.ass5.pta.analysis.context.Context;
+import com.canliture.soot.ass5.pta.analysis.context.ContextSelector;
+import com.canliture.soot.ass5.pta.analysis.context.DefaultContext;
+import com.canliture.soot.ass5.pta.analysis.data.CSCallSite;
+import com.canliture.soot.ass5.pta.analysis.data.CSMethod;
 import com.canliture.soot.ass5.pta.analysis.data.CSObj;
+import com.canliture.soot.ass5.pta.analysis.data.CSVariable;
 import com.canliture.soot.ass5.pta.elem.CallSite;
 import com.canliture.soot.ass5.pta.elem.Method;
 import com.canliture.soot.ass5.pta.elem.Obj;
+import com.canliture.soot.ass5.pta.elem.Variable;
 import com.canliture.soot.ass5.pta.stmt.*;
 import soot.*;
 import soot.jimple.AssignStmt;
@@ -38,13 +46,16 @@ public class PointerAnalysis {
 
     protected Set<Statement> S;
 
-    protected Set<Method> RM;
+    protected Set<CSMethod> RM;
 
     protected JimpleCallGraph CG;
 
-    public PointerAnalysis(SootMethod entry) {
+    protected ContextSelector selector;
+
+    public PointerAnalysis(SootMethod entry, ContextSelector selector) {
         this.sootMethod = entry;
         this.heapModel = HeapModel.v();
+        this.selector = selector;
     }
 
     /**
@@ -66,7 +77,9 @@ public class PointerAnalysis {
         RM = new LinkedHashSet<>();
         CG = new JimpleCallGraph();
         entry = new Method(sootMethod);
-        addReachable(entry);
+
+        CSMethod csMethod = new CSMethod(DefaultContext.v(), entry);
+        addReachable(csMethod);
     }
 
     /**
@@ -99,12 +112,12 @@ public class PointerAnalysis {
         }
     }
 
-    protected void addReachable(Method m) {
+    protected void addReachable(CSMethod m) {
         if (!RM.contains(m)) {
             RM.add(m);
 
             // S U= S_m
-            Set<Statement> S_m = m.getStatements();
+            Set<Statement> S_m = m.getMethod().getStatements();
             S.addAll(S_m);
 
             // foreach i: x = new T() \in S_m
@@ -167,18 +180,22 @@ public class PointerAnalysis {
      * 这个heapModel尝试自己实现吧...
      * @param m
      */
-    protected void processAllocations(Method m) {
-        Set<Statement> S_m = m.getStatements();
-        /*S_m.stream()
+    protected void processAllocations(CSMethod m) {
+        Context c = m.getContext();
+
+        Set<Statement> S_m = m.getMethod().getStatements();
+        S_m.stream()
             .filter(s -> s instanceof Allocation)
             .forEach(s -> {
                 // i: x = new T()
                 Allocation i = (Allocation) s;
                 // o_i
-                Obj o = heapModel.getObj(i.getAllocationSite(), i.getType(), m);
-                // <x, o_i>
-                WL.addPointerEntry(PFG.getVar(i.getVar()), PointsToSet.singleton(o));
-            });*/
+                Obj o = heapModel.getObj(i.getAllocationSite(), i.getType(), m.getMethod());
+                // <c:x, c:o_i>
+                CSVariable csVariable = new CSVariable(c, i.getVar());
+                CSObj csObj = new CSObj(c, o);
+                WL.addPointerEntry(PFG.getVar(csVariable), PointsToSet.singleton(csObj));
+            });
     }
 
     /**
@@ -188,16 +205,20 @@ public class PointerAnalysis {
      * Lecture 10, Page 118 的 AddReachable函数的第二个foreach循环
      * @param m
      */
-    protected void processLocalAssign(Method m) {
-        /*Set<Statement> S_m = m.getStatements();
+    protected void processLocalAssign(CSMethod m) {
+        Context c = m.getContext();
+
+        Set<Statement> S_m = m.getMethod().getStatements();
         S_m.stream()
             .filter(s -> s instanceof Assign)
             .forEach(s -> {
                 // x = y
                 Assign assign = (Assign) s;
-                // y -> x
-                addPFGEdge(PFG.getVar(assign.getFrom()), PFG.getVar(assign.getTo()));
-            });*/
+                // c:y -> c:x
+                CSVariable from = new CSVariable(c, assign.getFrom());
+                CSVariable to = new CSVariable(c, assign.getTo());
+                addPFGEdge(PFG.getVar(from), PFG.getVar(to));
+            });
     }
 
     /**
@@ -209,14 +230,19 @@ public class PointerAnalysis {
      * @param pts 改变的部分delta
      */
     protected void processInstanceStore(Var var, PointsToSet pts) {
-        /*for (CSObj o_i : pts) {
-            Set<InstanceStore> stores = var.getVariable().getStores();
+        Context c = var.getVariable().getContext();
+
+        // c':o_i
+        for (CSObj o_i : pts) {
+
+            Set<InstanceStore> stores = var.getVariable().getVariable().getStores();
             // x.f = y
             for (InstanceStore store : stores) {
-                // y -> o_i.f
-                addPFGEdge(PFG.getVar(store.getFrom()), PFG.getInstanceField(o_i, store.getField()));
+                // c:y -> c':o_i.f
+                CSVariable from = new CSVariable(c, store.getFrom());
+                addPFGEdge(PFG.getVar(from), PFG.getInstanceField(o_i, store.getField()));
             }
-        }*/
+        }
     }
 
     /**
@@ -228,13 +254,17 @@ public class PointerAnalysis {
      * @param pts 改变的部分delta
      */
     protected void processInstanceLoad(Var var, PointsToSet pts) {
+        Context c = var.getVariable().getContext();
+
+        // c'o_i
         for (CSObj o_i : pts) {
-            /*Set<InstanceLoad> loads = var.getVariable().getLoads();
+            Set<InstanceLoad> loads = var.getVariable().getVariable().getLoads();
             // y = x.f
             for (InstanceLoad load : loads) {
-                // o_i.f -> y
-                addPFGEdge(PFG.getInstanceField(o_i, load.getField()), PFG.getVar(load.getTo()));
-            }*/
+                // c':o_i.f -> c:y
+                CSVariable from = new CSVariable(c, load.getTo());
+                addPFGEdge(PFG.getInstanceField(o_i, load.getField()), PFG.getVar(from));
+            }
         }
     }
 
@@ -244,48 +274,64 @@ public class PointerAnalysis {
      * @param pts
      */
     protected void processCall(Var var, PointsToSet pts) {
-        /*Method curMethod = var.getVariable().getMethod();
+        Method curMethod = var.getVariable().getVariable().getMethod();
+        Context c = var.getVariable().getContext();
 
+        // c':o_i
         for (CSObj o_i : pts) {
-            Set<Call> calls = var.getVariable().getCalls();
+            Set<Call> calls = var.getVariable().getVariable().getCalls();
             for (Call call : calls) {
                 // r = var.k(a1, ..., an)
                 CallSite callSite = call.getCallSite();
                 // m = Dispatch(o_i, k)
-                Method m = dispatch(o_i, callSite);
-                // add <m_this, {o_i}> to WL
-                WL.addPointerEntry(PFG.getVar(m.getThisVariable()), PointsToSet.singleton(o_i));
+                Method m = dispatch(o_i.getObject(), callSite);
 
-                // if l -> m not in CG
-                if (!CG.contains(callSite.getCallSite(), m.getSootMethod())) {
-                    // add l -> m to CG
-                    CG.addEdge(callSite.getCallSite(), m.getSootMethod(), CallKind.getCallKind(callSite.getCallSite()));
+                // c:l
+                CSCallSite csCallSite = new CSCallSite(c, callSite);
+                // c^t
+                Context ct = selector.selectContext(csCallSite, o_i, m);
 
-                    addReachable(m);
+                // add <ct:m_this, c':o_i> to WL
+                CSVariable csThis = new CSVariable(ct, m.getThisVariable());
+                WL.addPointerEntry(PFG.getVar(csThis), PointsToSet.singleton(o_i));
+
+                // if c:l -> ct:m not in CG
+                CSMethod csCallee = new CSMethod(ct, m);
+                if (!CG.contains(csCallSite, csCallee)) {
+                    // add c:l -> ct:m to CG
+                    CG.addEdge(csCallSite,
+                               csCallee,
+                               CallKind.getCallKind(callSite.getCallSite()));
+
+                    addReachable(csCallee);
 
                     // foreach parameter p_i of m do
-                    //   AddEdge(a_i, p_i)
+                    //   AddEdge(c:a_i, ct:p_i)
                     InvokeExpr invoke = callSite.getCallSite().getInvokeExpr();
                     for (int i = 0; i < m.getParams().size(); i++) {
                         Local arg = (Local) invoke.getArg(i);
                         Variable argVariable = curMethod.getVariable(arg);
+                        CSVariable cs_a_i = new CSVariable(c, argVariable);
 
                         Variable paramVariable = m.getParams().get(i);
+                        CSVariable ct_p_i = new CSVariable(ct, paramVariable);
 
-                        addPFGEdge(PFG.getVar(argVariable), PFG.getVar(paramVariable));
+                        addPFGEdge(PFG.getVar(cs_a_i), PFG.getVar(ct_p_i));
                     }
 
-                    // AddEdge(m_ret, r)
+                    // AddEdge(ct:m_ret, c:r)
                     Variable callerRetVar = callSite.getRet();
+                    CSVariable c_r = new CSVariable(c, callerRetVar);
                     if (callerRetVar != null) {
                         List<Variable> calleeRetVariableList = m.getRetVariable();
                         for (Variable calleeRetVar : calleeRetVariableList) {
-                            addPFGEdge(PFG.getVar(calleeRetVar), PFG.getVar(callerRetVar));
+                            CSVariable ct_m_ret = new CSVariable(ct, calleeRetVar);
+                            addPFGEdge(PFG.getVar(ct_m_ret), PFG.getVar(c_r));
                         }
                     }
                 }
             }
-        }*/
+        }
     }
 
     protected Method dispatch(Obj o, CallSite callSite) {
@@ -301,9 +347,9 @@ public class PointerAnalysis {
         SootMethod dispatch = dispatch(sootClass, sootMethod);
 
         Method method = null;
-        for (Method m : RM) {
-            if (m.getSootMethod() == dispatch) {
-                method = m;
+        for (CSMethod m : RM) {
+            if (m.getMethod().getSootMethod() == dispatch) {
+                method = m.getMethod();
                 break;
             }
         }
