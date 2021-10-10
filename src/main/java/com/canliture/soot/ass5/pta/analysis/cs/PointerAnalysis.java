@@ -290,8 +290,8 @@ public class PointerAnalysis {
 
             // AddEdge(ct:m_ret, c:r)
             Variable callerRetVar = callSite.getRet();
-            CSVariable c_r = new CSVariable(c, callerRetVar);
             if (callerRetVar != null) {
+                CSVariable c_r = new CSVariable(c, callerRetVar);
                 List<Variable> calleeRetVariableList = calleeMethod.getRetVariable();
                 for (Variable calleeRetVar : calleeRetVariableList) {
                     CSVariable ct_m_ret = new CSVariable(ct, calleeRetVar);
