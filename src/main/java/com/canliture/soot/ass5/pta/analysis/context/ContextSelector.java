@@ -49,7 +49,7 @@ public interface ContextSelector {
 
     /**
      * 对抽象对象选择堆上下文；
-     * 当指针分析处理对象分配时，此接口被调用
+     * 当指针分析处理对象分配(object allocation)时，此接口被调用
      * @param csMethod 上下文敏感的方法，它包含了对象的分配点
      * @param o allocation site
      * @return
