@@ -47,6 +47,9 @@ public class PointerAnalysisTransformer extends SceneTransformer {
 
     protected ContextSelector getSelector() {
         // fixme change the selector implementation for verification.
+
+        //return new ContextInsensitiveSelector();
+
         //return new OneCallSelector();
         return new TwoCallSelector();
 

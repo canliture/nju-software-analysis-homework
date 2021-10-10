@@ -14,16 +14,16 @@ public class ContextInsensitiveSelector implements ContextSelector {
 
     @Override
     public Context selectContext(CSCallSite csCallSite, Method method) {
-        return null;
+        return getDefaultContext();
     }
 
     @Override
     public Context selectContext(CSCallSite csCallSite, CSObj csObj, Method method) {
-        return null;
+        return getDefaultContext();
     }
 
     @Override
     public Context selectHeapContext(CSMethod csMethod, Object o) {
-        return null;
+        return getDefaultContext();
     }
 }
