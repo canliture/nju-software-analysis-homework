@@ -14,16 +14,26 @@ public class TwoCallSelector implements ContextSelector {
 
     @Override
     public Context selectContext(CSCallSite csCallSite, Method method) {
-        return null;
+        Context preContext = csCallSite.getContext();
+        switch (preContext.depth()) {
+            case 0:
+                return new TwoContext<>(csCallSite.getCallSite(), null);
+            case 1:
+                return new TwoContext<>(preContext.element(1), csCallSite.getCallSite());
+            case 2:
+                return new TwoContext<>(preContext.element(2), csCallSite.getCallSite());
+            default:
+                throw new IllegalStateException();
+        }
     }
 
     @Override
     public Context selectContext(CSCallSite csCallSite, CSObj csObj, Method method) {
-        return null;
+        return selectContext(csCallSite, method);
     }
 
     @Override
     public Context selectHeapContext(CSMethod csMethod, Object o) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 }

@@ -14,16 +14,16 @@ public class OneCallSelector implements ContextSelector {
 
     @Override
     public Context selectContext(CSCallSite csCallSite, Method method) {
-        return null;
+        return new OneContext<>(csCallSite.getCallSite());
     }
 
     @Override
     public Context selectContext(CSCallSite csCallSite, CSObj csObj, Method method) {
-        return null;
+        return new OneContext<>(csCallSite.getCallSite());
     }
 
     @Override
     public Context selectHeapContext(CSMethod csMethod, Object o) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 }
