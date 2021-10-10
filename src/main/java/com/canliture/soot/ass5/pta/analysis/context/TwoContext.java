@@ -37,6 +37,19 @@ public class TwoContext<T> implements Context {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TwoContext<?> that = (TwoContext<?>) o;
+        return Objects.equals(ctx1, that.ctx1) && Objects.equals(ctx2, that.ctx2);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ctx1, ctx2);
+    }
+
+    @Override
     public String toString() {
         if (depth() == 1) {
             return "[" + ctx1 + ", ]";
