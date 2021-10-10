@@ -6,6 +6,12 @@
 - 希望提bug/issue
   - 指针分析静态函数的处理还没做, 不过也不难...
 
+### 环境
+- Java 8
+- Soot 4.2.1
+- IntelliJ IDEA
+- Maven构建/Junit测试
+
 ### 文档
 - docs/org为南大课程的作业原题pdf
 - docs/soot为soot参考资料
@@ -29,5 +35,21 @@
   - 流敏感指针分析
   
 ### 测试
-src/test/java/目录下
-com.canliture.soot.ass{n}
+运行单元测试的代码: src/test/java/目录下
+- com.canliture.soot.ass{n}
+
+被测试代码: src/test/testcodes/ass/*
+
+### 调试运行
+- 使用IntelliJ IDEA时，将目录src/test/testcodes/ass标记为`Test sources root`
+  - 这样就能够在调试/运行的时候自动将被测试代码编译到target/test-classes目录下，方便测试
+- 以ass1的调试/运行 测试为例
+  - 找到com.canliture.soot.ass1.IntraConstantPropagationTest类，运行Junit测试即可
+  - 每个测试类都有一个getTransformer()方法，里面的返回的Transformer的internalTransform方法就是分析的入口了
+    - 对整个测试怎么跑起来, 可以查看InterBaseTest和IntraBaseTest类，这里封装个小的测试框架
+      - @Before 测试前先配置一下Soot
+      - @Test 执行测试代码
+      - @After 输出Jimple IR到sootOutput目录下
+  
+![How-To-Run-Test](./docs/images/How-To-Run.png)
+
