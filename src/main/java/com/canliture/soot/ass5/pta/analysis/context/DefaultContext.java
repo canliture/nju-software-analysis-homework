@@ -21,13 +21,16 @@ public class DefaultContext implements Context {
 
     @Override
     public int depth() {
-        // todo
         return 0;
     }
 
     @Override
     public Object element(int i) {
-        // todo
-        return null;
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public String toString() {
+        return "[]";
     }
 }
