@@ -1,6 +1,7 @@
 package com.canliture.soot.ass5.pta.elem;
 
 import soot.jimple.Stmt;
+import soot.tagkit.LineNumberTag;
 
 import java.util.Objects;
 
@@ -73,6 +74,6 @@ public class CallSite {
 
     @Override
     public String toString() {
-        return callSite.toString();
+        return callSite.toString() + "@" + callSite.getTag(LineNumberTag.IDENTIFIER);
     }
 }

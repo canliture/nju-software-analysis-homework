@@ -42,7 +42,6 @@ public class Var extends Pointer {
 
     @Override
     public String toString() {
-        // fixme
-        return "";
+        return var.toString();
     }
 }
