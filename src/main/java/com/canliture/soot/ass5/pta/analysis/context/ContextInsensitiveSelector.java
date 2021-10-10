@@ -13,11 +13,6 @@ import com.canliture.soot.ass5.pta.elem.Method;
 public class ContextInsensitiveSelector implements ContextSelector {
 
     @Override
-    public Context getDefaultContext() {
-        return null;
-    }
-
-    @Override
     public Context selectContext(CSCallSite csCallSite, Method method) {
         return null;
     }
