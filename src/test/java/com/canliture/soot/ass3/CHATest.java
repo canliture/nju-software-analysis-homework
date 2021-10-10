@@ -22,6 +22,8 @@ public class CHATest extends InterBaseTest {
         List<String> excluded = new LinkedList<>(super.getExcluded());
         excluded.add("ass1.*");
         excluded.add("ass2.*");
+        excluded.add("ass4.*");
+        excluded.add("ass5.*");
         return excluded;
     }
 

@@ -24,6 +24,7 @@ public class PointerAnalysisTest extends InterBaseTest {
         excluded.add("ass1.*");
         excluded.add("ass2.*");
         excluded.add("ass3.*");
+        excluded.add("ass5.*");
         return excluded;
     }
 
