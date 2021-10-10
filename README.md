@@ -46,10 +46,11 @@
 - 以ass1的调试/运行 测试为例
   - 找到com.canliture.soot.ass1.IntraConstantPropagationTest类，运行Junit测试即可
   - 每个测试类都有一个getTransformer()方法，里面的返回的Transformer的internalTransform方法就是分析的入口了
-    - 对整个测试怎么跑起来, 可以查看InterBaseTest和IntraBaseTest类，这里封装个小的测试框架
-      - @Before 测试前先配置一下Soot
-      - @Test 执行测试代码
-      - @After 输出Jimple IR到sootOutput目录下
+
+- 对整个测试怎么跑起来, 可以查看InterBaseTest和IntraBaseTest类，这里封装个小的测试框架
+  - @Before 测试前先配置一下Soot
+  - @Test 执行测试代码
+  - @After 输出Jimple IR到sootOutput目录下
   
 ![How-To-Run-Test](./docs/images/How-To-Run.png)
 
