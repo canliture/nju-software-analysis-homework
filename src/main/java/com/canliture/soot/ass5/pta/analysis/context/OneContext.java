@@ -7,7 +7,7 @@ import java.util.Objects;
  */
 public class OneContext<T> implements Context {
 
-    private T ctx;
+    private final T ctx;
 
     public OneContext(T ctx) {
         Objects.requireNonNull(ctx);
@@ -25,5 +25,23 @@ public class OneContext<T> implements Context {
             return ctx;
         }
         throw new IllegalArgumentException();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        OneContext<?> that = (OneContext<?>) o;
+        return Objects.equals(ctx, that.ctx);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ctx);
+    }
+
+    @Override
+    public String toString() {
+        return "[" + ctx + "]";
     }
 }
