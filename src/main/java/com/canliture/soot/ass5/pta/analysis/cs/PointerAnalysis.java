@@ -19,6 +19,7 @@ import soot.*;
 import soot.jimple.AssignStmt;
 import soot.jimple.InvokeExpr;
 import soot.jimple.NewExpr;
+import soot.jimple.StaticInvokeExpr;
 import soot.toolkits.scalar.Pair;
 
 import java.util.LinkedHashSet;
@@ -125,6 +126,9 @@ public class PointerAnalysis {
 
             // foreach x = y \in S_m
             processLocalAssign(m);
+
+            // foreach l: r = ClassName.k(a1, ..., an)
+            processStaticCall(m);
         }
     }
 
@@ -222,6 +226,82 @@ public class PointerAnalysis {
     }
 
     /**
+     * 处理静态函数调用
+     * @param m
+     */
+    protected void processStaticCall(CSMethod m) {
+        Method curMethod = m.getMethod();
+        Context c = m.getContext();
+
+        Set<Statement> S_m = m.getMethod().getStatements();
+        S_m.stream()
+           .filter(s -> (s instanceof Call)
+                    && CallKind.STATIC == CallKind.getCallKind(((Call) s).getCallSite().getCallSite()))
+           .forEach(s -> {
+               // l: r = ClassName.k(a1, ..., an)
+               Call call = (Call) s;
+               CallSite callSite = call.getCallSite();
+               StaticInvokeExpr staticCall = (StaticInvokeExpr) callSite.getCallSite().getInvokeExpr();
+
+               // 被调用函数 (不需要Dispatch, 静态可知)
+               SootMethod calleeSootMethod = staticCall.getMethod();
+               Method calleeMethod = getMethod(calleeSootMethod);
+
+               // Select(c, callSite, calleeMethod)
+               CSCallSite csCallSite = new CSCallSite(c, callSite);
+               Context ct = selector.selectContext(csCallSite, calleeMethod);
+
+               processCallLink(curMethod, c, calleeMethod, callSite, csCallSite, ct);
+           });
+    }
+
+    /**
+     * 处理调用时的连边
+     * @param curMethod 当前函数
+     * @param c 当前上下文
+     * @param calleeMethod 被调用函数
+     * @param callSite 调用点
+     * @param csCallSite 上下文敏感的调用点
+     * @param ct 被调用函数被选择后的上下文
+     */
+    private void processCallLink(Method curMethod, Context c, Method calleeMethod, CallSite callSite, CSCallSite csCallSite, Context ct) {
+        CSMethod csCallee = new CSMethod(ct, calleeMethod);
+        if (!CG.contains(csCallSite, csCallee)) {
+            // add c:l -> ct:m to CG
+            CG.addEdge(csCallSite,
+                       csCallee,
+                       CallKind.getCallKind(callSite.getCallSite()));
+
+            addReachable(csCallee);
+
+            // foreach parameter p_i of m do
+            //   AddEdge(c:a_i, ct:p_i)
+            InvokeExpr invoke = callSite.getCallSite().getInvokeExpr();
+            for (int i = 0; i < calleeMethod.getParams().size(); i++) {
+                Local arg = (Local) invoke.getArg(i);
+                Variable argVariable = curMethod.getVariable(arg);
+                CSVariable cs_a_i = new CSVariable(c, argVariable);
+
+                Variable paramVariable = calleeMethod.getParams().get(i);
+                CSVariable ct_p_i = new CSVariable(ct, paramVariable);
+
+                addPFGEdge(PFG.getVar(cs_a_i), PFG.getVar(ct_p_i));
+            }
+
+            // AddEdge(ct:m_ret, c:r)
+            Variable callerRetVar = callSite.getRet();
+            CSVariable c_r = new CSVariable(c, callerRetVar);
+            if (callerRetVar != null) {
+                List<Variable> calleeRetVariableList = calleeMethod.getRetVariable();
+                for (Variable calleeRetVar : calleeRetVariableList) {
+                    CSVariable ct_m_ret = new CSVariable(ct, calleeRetVar);
+                    addPFGEdge(PFG.getVar(ct_m_ret), PFG.getVar(c_r));
+                }
+            }
+        }
+    }
+
+    /**
      * 处理字段的写语句;
      * 如: x.f = y
      *
@@ -286,50 +366,16 @@ public class PointerAnalysis {
                 // m = Dispatch(o_i, k)
                 Method m = dispatch(o_i.getObject(), callSite);
 
-                // c:l
+                // Select(c, callSite, c':o_i, m)
                 CSCallSite csCallSite = new CSCallSite(c, callSite);
-                // c^t
                 Context ct = selector.selectContext(csCallSite, o_i, m);
 
                 // add <ct:m_this, c':o_i> to WL
                 CSVariable csThis = new CSVariable(ct, m.getThisVariable());
                 WL.addPointerEntry(PFG.getVar(csThis), PointsToSet.singleton(o_i));
 
-                // if c:l -> ct:m not in CG
-                CSMethod csCallee = new CSMethod(ct, m);
-                if (!CG.contains(csCallSite, csCallee)) {
-                    // add c:l -> ct:m to CG
-                    CG.addEdge(csCallSite,
-                               csCallee,
-                               CallKind.getCallKind(callSite.getCallSite()));
-
-                    addReachable(csCallee);
-
-                    // foreach parameter p_i of m do
-                    //   AddEdge(c:a_i, ct:p_i)
-                    InvokeExpr invoke = callSite.getCallSite().getInvokeExpr();
-                    for (int i = 0; i < m.getParams().size(); i++) {
-                        Local arg = (Local) invoke.getArg(i);
-                        Variable argVariable = curMethod.getVariable(arg);
-                        CSVariable cs_a_i = new CSVariable(c, argVariable);
-
-                        Variable paramVariable = m.getParams().get(i);
-                        CSVariable ct_p_i = new CSVariable(ct, paramVariable);
-
-                        addPFGEdge(PFG.getVar(cs_a_i), PFG.getVar(ct_p_i));
-                    }
-
-                    // AddEdge(ct:m_ret, c:r)
-                    Variable callerRetVar = callSite.getRet();
-                    CSVariable c_r = new CSVariable(c, callerRetVar);
-                    if (callerRetVar != null) {
-                        List<Variable> calleeRetVariableList = m.getRetVariable();
-                        for (Variable calleeRetVar : calleeRetVariableList) {
-                            CSVariable ct_m_ret = new CSVariable(ct, calleeRetVar);
-                            addPFGEdge(PFG.getVar(ct_m_ret), PFG.getVar(c_r));
-                        }
-                    }
-                }
+                // 传播参数/返回值
+                processCallLink(curMethod, c, m, callSite, csCallSite, ct);
             }
         }
     }
@@ -346,17 +392,27 @@ public class PointerAnalysis {
 
         SootMethod dispatch = dispatch(sootClass, sootMethod);
 
-        Method method = null;
+        Method method = getMethod(dispatch);
+        return method;
+    }
+
+    /**
+     * 从 SootMethod 中获取 Method
+     * @param sootMethod
+     * @return
+     */
+    protected Method getMethod(SootMethod sootMethod) {
+        Method result = null;
         for (CSMethod m : RM) {
-            if (m.getMethod().getSootMethod() == dispatch) {
-                method = m.getMethod();
+            if (m.getMethod().getSootMethod() == sootMethod) {
+                result = m.getMethod();
                 break;
             }
         }
-        if (method == null) {
-            method = new Method(dispatch);
+        if (result == null) {
+            result = new Method(sootMethod);
         }
-        return method;
+        return result;
     }
 
     /**
