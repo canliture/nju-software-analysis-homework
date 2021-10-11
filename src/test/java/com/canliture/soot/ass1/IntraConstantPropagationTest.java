@@ -1,4 +1,4 @@
-package com.canliture.soot.ass1;
+﻿package com.canliture.soot.ass1;
 
 import com.canliture.soot.IntraBaseTest;
 import soot.*;
@@ -14,7 +14,7 @@ public class IntraConstantPropagationTest extends IntraBaseTest {
 
     @Override
     public List<String> getProcessDirs() {
-        return Arrays.asList("target/test-classes/ass1");
+        return Arrays.asList("target/test-classes/");
     }
 
     @Override

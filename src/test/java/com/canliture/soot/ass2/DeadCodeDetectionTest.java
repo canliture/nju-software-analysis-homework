@@ -1,4 +1,4 @@
-package com.canliture.soot.ass2;
+﻿package com.canliture.soot.ass2;
 
 import com.canliture.soot.IntraBaseTest;
 import soot.Transformer;
@@ -14,7 +14,7 @@ public class DeadCodeDetectionTest extends IntraBaseTest {
 
     @Override
     public List<String> getProcessDirs() {
-        return Arrays.asList("target/test-classes/ass2");
+        return Arrays.asList("target/test-classes");
     }
 
     @Override
