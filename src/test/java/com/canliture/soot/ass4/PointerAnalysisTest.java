@@ -1,4 +1,4 @@
-ï»¿package com.canliture.soot.ass4;
+package com.canliture.soot.ass4;
 
 import com.canliture.soot.InterBaseTest;
 import com.canliture.soot.ass4.pta.analysis.ci.PointerAnalysisTransformer;
@@ -9,7 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Created by liture on 2021/9/22 1:13 ä¸Šåˆ
+ * Created by liture on 2021/9/22 1:13 ÉÏÎç
  */
 public class PointerAnalysisTest extends InterBaseTest {
 
