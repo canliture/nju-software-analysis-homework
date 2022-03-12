@@ -14,7 +14,7 @@ public class CHATest extends InterBaseTest {
 
     @Override
     public List<String> getProcessDirs() {
-        return Arrays.asList("/Users/zhengjiaye/projects/java_proj/nju-software-analysis-homework/src/test/testcodes/ass/ass3");
+        return Arrays.asList("/test/testcodes/ass/ass3");
     }
 
     @Override
