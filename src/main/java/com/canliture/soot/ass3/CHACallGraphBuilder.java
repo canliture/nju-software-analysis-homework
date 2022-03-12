@@ -44,6 +44,7 @@ public class CHACallGraphBuilder {
                         return m;
                     }
                     // 否则对比参数列表
+                    // test parameter 1 by 1.
                     Set<Type> parameterSet = new HashSet<>(method.getParameterTypes());;
                     for (int i = 0; i < method.getParameterCount(); i++) {
                         Type t = m.getParameterType(i);

@@ -1,4 +1,4 @@
-﻿package com.canliture.soot.ass3;
+package com.canliture.soot.ass3;
 
 import com.canliture.soot.InterBaseTest;
 import soot.Transformer;
@@ -14,7 +14,7 @@ public class CHATest extends InterBaseTest {
 
     @Override
     public List<String> getProcessDirs() {
-        return Arrays.asList("target/test-classes/");
+        return Arrays.asList("/Users/zhengjiaye/projects/java_proj/nju-software-analysis-homework/src/test/testcodes/ass/ass3");
     }
 
     @Override
