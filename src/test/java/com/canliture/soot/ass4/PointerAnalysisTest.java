@@ -9,7 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Created by liture on 2021/9/22 1:13 ÉÏÎç
+ * Created by liture on 2021/9/22 1:13 ä¸Šåˆ
  */
 public class PointerAnalysisTest extends InterBaseTest {
 

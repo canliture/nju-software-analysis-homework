@@ -4,6 +4,7 @@ import com.canliture.soot.InterBaseTest;
 import soot.Transformer;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -14,7 +15,7 @@ public class CHATest extends InterBaseTest {
 
     @Override
     public List<String> getProcessDirs() {
-        return Arrays.asList("/test/testcodes/ass/ass3");
+        return Collections.singletonList("target/test-classes/");
     }
 
     @Override
