@@ -1,3 +1,11 @@
+```
+本仓库的使命已完成，请移步官方Tai-e教程：
+仓库：https://github.com/pascal-lab/Tai-e-assignments
+官方网站：http://tai-e.pascal-lab.net
+知乎帖子：https://zhuanlan.zhihu.com/p/488957195
+```
+----------
+
 这里是南京大学软件分析课程实验作业的非官方实现
 
 注：南大课程作业Bamboo没开源，为啥有这个仓库？
