@@ -3,6 +3,8 @@
 仓库：https://github.com/pascal-lab/Tai-e-assignments
 官方网站：http://tai-e.pascal-lab.net
 知乎帖子：https://zhuanlan.zhihu.com/p/488957195
+
+本仓库是早期作业的参考实现...
 ```
 ----------
 
