@@ -8,6 +8,11 @@
 ```
 可以添加我的微信，互相交流：WangShengID
 
+欢迎加程序分析工具开发群
+
+![](https://canliture.github.io/imgs/group.jpg)
+![xx](https://canliture.github.io/imgs/wechat.jpg)
+
 ----------
 
 这里是南京大学软件分析课程实验作业的非官方实现
