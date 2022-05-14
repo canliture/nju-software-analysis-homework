@@ -6,12 +6,9 @@
 
 本仓库是早期作业的参考实现...
 ```
-可以添加我的微信，互相交流：WangShengID
-
 欢迎加程序分析工具开发群
 
 ![](https://canliture.github.io/imgs/group.jpg)
-![xx](https://canliture.github.io/imgs/wechat.jpg)
 
 ----------
 
