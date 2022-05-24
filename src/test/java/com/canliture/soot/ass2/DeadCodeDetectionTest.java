@@ -1,4 +1,4 @@
-﻿package com.canliture.soot.ass2;
+package com.canliture.soot.ass2;
 
 import com.canliture.soot.IntraBaseTest;
 import soot.Transformer;

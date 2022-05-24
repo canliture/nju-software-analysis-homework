@@ -1,9 +1,10 @@
-﻿package com.canliture.soot.ass3;
+package com.canliture.soot.ass3;
 
 import com.canliture.soot.InterBaseTest;
 import soot.Transformer;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -14,7 +15,7 @@ public class CHATest extends InterBaseTest {
 
     @Override
     public List<String> getProcessDirs() {
-        return Arrays.asList("target/test-classes/");
+        return Collections.singletonList("target/test-classes/");
     }
 
     @Override
