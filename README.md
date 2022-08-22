@@ -6,7 +6,7 @@
 
 本仓库是早期作业的参考实现...
 ```
-欢迎加程序分析工具开发群
+欢迎加程序分析工具开发群 (二维码过期，参考issue https://github.com/canliture/nju-software-analysis-homework/issues/4)
 
 ![](https://canliture.github.io/imgs/group.jpg)
 
