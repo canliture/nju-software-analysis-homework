@@ -8,7 +8,7 @@
 ```
 欢迎加程序分析工具开发群 (二维码过期，参考issue https://github.com/canliture/nju-software-analysis-homework/issues/4)
 
-![](https://canliture.github.io/imgs/group.jpg)
+https://canliture.github.io/imgs/group.jpg
 
 ----------
 
