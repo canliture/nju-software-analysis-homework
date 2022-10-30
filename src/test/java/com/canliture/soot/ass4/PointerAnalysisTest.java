@@ -1,4 +1,4 @@
-﻿package com.canliture.soot.ass4;
+package com.canliture.soot.ass4;
 
 import com.canliture.soot.InterBaseTest;
 import com.canliture.soot.ass4.pta.analysis.ci.PointerAnalysisTransformer;

@@ -44,11 +44,22 @@ public class CHACallGraphBuilder {
                         return m;
                     }
                     // 否则对比参数列表
-                    for (int i = 0; i < m.getParameterCount(); i++) {
-                        Type t = m.getParameterType(i);
-                        Type t1 = method.getParameterType(i);
-                        if (t.toQuotedString().equals(t1.toQuotedString())) {
-                            return m;
+                    // test parameter 1 by 1.
+                    Set<String> parameterQuoteSet = new HashSet<>();;
+                    for(Type t : method.getParameterTypes()) {
+                        parameterQuoteSet.add(t.toQuotedString());
+                    }
+
+                    for (int i = 0; i < method.getParameterCount(); i++) {
+                        String tqs = m.getParameterType(i).toQuotedString();
+                        // match all
+                        if(parameterQuoteSet.contains(tqs)) {
+                            if(i==method.getParameterCount()-1) {
+                                return method;
+                            }
+                        } else {
+                            // do not match
+                            break;
                         }
                     }
                 }
